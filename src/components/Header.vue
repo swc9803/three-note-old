@@ -3,6 +3,7 @@
 		<ul>
 			<RouterLink to="/">Home</RouterLink>
 			<RouterLink to="/fog">Fog</RouterLink>
+			<RouterLink to="/fit">ZoomFitModel</RouterLink>
 		</ul>
 	</nav>
 </template>
@@ -12,5 +13,9 @@ nav {
 	position: absolute;
 	background: white;
 	z-index: 9;
+	ul {
+		display: flex;
+		gap: 20px;
+	}
 }
 </style>
