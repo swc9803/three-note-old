@@ -2,7 +2,7 @@
 	<nav>
 		<ul>
 			<RouterLink to="/">Home</RouterLink>
-			<RouterLink to="/test">Test</RouterLink>
+			<RouterLink to="/fog">Fog</RouterLink>
 		</ul>
 	</nav>
 </template>
