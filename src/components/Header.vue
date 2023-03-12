@@ -4,6 +4,7 @@
 			<RouterLink to="/">Home</RouterLink>
 			<RouterLink to="/fog">Fog</RouterLink>
 			<RouterLink to="/fit">ZoomFitModel</RouterLink>
+			<RouterLink to="/fbx">Fbx</RouterLink>
 		</ul>
 	</nav>
 </template>
