@@ -5,6 +5,7 @@ import Fit from '../pages/ZoomFitModel.vue';
 import Fbx from '../pages/Fbx.vue';
 import Background from '../pages/Background.vue';
 import DynamicMap from '../pages/DynamicMap.vue';
+import Glass from '../pages/Glass.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +39,11 @@ const router = createRouter({
 			path: '/dynamic',
 			name: 'dynamic',
 			component: DynamicMap,
+		},
+		{
+			path: '/glass',
+			name: 'glass',
+			component: Glass,
 		},
 	],
 });

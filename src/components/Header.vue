@@ -7,6 +7,7 @@
 			<RouterLink to="/fbx">Fbx</RouterLink>
 			<RouterLink to="/background">Background</RouterLink>
 			<RouterLink to="/dynamic">DynamicMap</RouterLink>
+			<RouterLink to="/glass">Glass</RouterLink>
 		</ul>
 	</nav>
 </template>
