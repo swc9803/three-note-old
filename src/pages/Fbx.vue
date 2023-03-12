@@ -14,6 +14,7 @@ let camera;
 let controls;
 let raf;
 let mixer;
+let fbxModel;
 
 const clock = new THREE.Clock();
 
@@ -71,6 +72,7 @@ const zoomFit = (object3D, camera, viewMode, bFront) => {
 
 const loader = new FBXLoader();
 loader.load('/dancing.fbx', model => {
+	fbxModel = model;
 	mixer = new THREE.AnimationMixer(model);
 	const action = mixer.clipAction(model.animations[0]);
 	action.play();
@@ -126,6 +128,15 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	cancelAnimationFrame(raf);
 	renderer.dispose();
+
+	if (fbxModel) {
+		fbxModel.traverse(function (node) {
+			if (node.isMesh) {
+				node.geometry.dispose();
+				node.material.dispose();
+			}
+		});
+	}
 
 	window.removeEventListener('resize', onResize);
 });

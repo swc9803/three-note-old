@@ -5,6 +5,8 @@
 			<RouterLink to="/fog">Fog</RouterLink>
 			<RouterLink to="/fit">ZoomFitModel</RouterLink>
 			<RouterLink to="/fbx">Fbx</RouterLink>
+			<RouterLink to="/background">Background</RouterLink>
+			<RouterLink to="/dynamic">DynamicMap</RouterLink>
 		</ul>
 	</nav>
 </template>

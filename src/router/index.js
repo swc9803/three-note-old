@@ -3,6 +3,8 @@ import Home from '../pages/Home.vue';
 import Fog from '../pages/Fog.vue';
 import Fit from '../pages/ZoomFitModel.vue';
 import Fbx from '../pages/Fbx.vue';
+import Background from '../pages/Background.vue';
+import DynamicMap from '../pages/DynamicMap.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +28,16 @@ const router = createRouter({
 			path: '/fbx',
 			name: 'fbx',
 			component: Fbx,
+		},
+		{
+			path: '/background',
+			name: 'background',
+			component: Background,
+		},
+		{
+			path: '/dynamic',
+			name: 'dynamic',
+			component: DynamicMap,
 		},
 	],
 });
