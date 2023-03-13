@@ -6,6 +6,7 @@ import Fbx from '../pages/Fbx.vue';
 import Background from '../pages/Background.vue';
 import DynamicMap from '../pages/DynamicMap.vue';
 import Glass from '../pages/Glass.vue';
+import Picking from '../pages/Picking.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
 			path: '/glass',
 			name: 'glass',
 			component: Glass,
+		},
+		{
+			path: '/picking',
+			name: 'picking',
+			component: Picking,
 		},
 	],
 });
