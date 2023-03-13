@@ -8,7 +8,7 @@
 			<RouterLink to="/background">Background</RouterLink>
 			<RouterLink to="/dynamic">DynamicMap</RouterLink>
 			<RouterLink to="/glass">Glass</RouterLink>
-			<RouterLink to="/picking">Picking</RouterLink>
+			<RouterLink to="/hdr">Hdr</RouterLink>
 		</ul>
 	</nav>
 </template>

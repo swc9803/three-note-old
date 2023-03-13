@@ -10,6 +10,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "ammo.js": "^0.0.10",
     "gsap": "^3.11.4",
     "three": "^0.150.1",
     "vue": "^3.2.47",

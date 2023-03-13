@@ -96,6 +96,7 @@ function animate() {
 
 	const delta = clock.getDelta();
 	if (mixer) mixer.update(delta);
+	// animation mixer를 통해 fadeIn fadeOut 전환이 자연스럽게 보이는 애니메이션 구현 가능
 
 	renderer.render(scene, camera);
 	raf = requestAnimationFrame(animate);
