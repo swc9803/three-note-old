@@ -25,10 +25,12 @@ const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
 // background + hdr light
+let hdr;
 new RGBELoader().load(
 	// '/brown_photostudio_03_4k.hdr'
 	'/satara_night_4k.hdr',
 	texture => {
+		hdr = texture;
 		texture.mapping = THREE.EquirectangularReflectionMapping;
 		texture.premultiplyAlpha = false;
 		scene.background = texture; // 배경
@@ -81,6 +83,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	cancelAnimationFrame(raf);
 	renderer.dispose();
+
+	if (hdr) {
+		hdr.dispose();
+	}
 
 	window.removeEventListener('resize', onResize);
 });

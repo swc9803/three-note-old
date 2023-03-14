@@ -9,6 +9,7 @@
 			<RouterLink to="/dynamic">DynamicMap</RouterLink>
 			<RouterLink to="/glass">Glass</RouterLink>
 			<RouterLink to="/hdr">Hdr</RouterLink>
+			<RouterLink to="/jewel">Jewel</RouterLink>
 		</ul>
 	</nav>
 </template>
@@ -20,6 +21,7 @@ nav {
 	z-index: 9;
 	ul {
 		display: flex;
+		flex-wrap: wrap;
 		gap: 20px;
 	}
 }
