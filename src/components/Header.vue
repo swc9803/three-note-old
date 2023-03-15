@@ -10,6 +10,7 @@
 			<RouterLink to="/glass">Glass</RouterLink>
 			<RouterLink to="/hdr">Hdr</RouterLink>
 			<RouterLink to="/jewel">Jewel</RouterLink>
+			<RouterLink to="/test">Test</RouterLink>
 		</ul>
 	</nav>
 </template>

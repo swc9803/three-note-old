@@ -9,6 +9,7 @@ import Glass from '../pages/Glass.vue';
 import Picking from '../pages/Picking.vue';
 import Hdr from '../pages/Hdr.vue';
 import Jewel from '../pages/Jewel.vue';
+import Test from '../pages/Test.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -62,6 +63,11 @@ const router = createRouter({
 			path: '/jewel',
 			name: 'jewel',
 			component: Jewel,
+		},
+		{
+			path: '/test',
+			name: 'test',
+			component: Test,
 		},
 	],
 });
