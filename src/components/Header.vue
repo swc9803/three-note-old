@@ -11,6 +11,7 @@
 			<RouterLink to="/hdr">Hdr</RouterLink>
 			<RouterLink to="/jewel">Jewel</RouterLink>
 			<RouterLink to="/test">Test</RouterLink>
+			<RouterLink to="/test2">Test2</RouterLink>
 		</ul>
 	</nav>
 </template>

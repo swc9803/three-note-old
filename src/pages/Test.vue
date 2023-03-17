@@ -6,7 +6,6 @@
 
 <script setup>
 import * as THREE from 'three';
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
@@ -52,7 +51,6 @@ const onMouseMove = e => {
 	mouse.y = -(containerRef.value.offsetHeight / 2 - e.clientY) * 0.0005;
 };
 
-// let controls;
 function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(
