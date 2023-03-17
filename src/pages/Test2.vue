@@ -21,11 +21,6 @@ const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 scene.background = new THREE.Color(0x555555);
 
-// light
-// const light = new THREE.DirectionalLight(0xffffff, 1);
-// light.position.set(1, 1, 1);
-// scene.add(light);
-
 const lights = [];
 for (let i = 0; i < 4; i++) {
 	const spotLight = new THREE.SpotLight(0xffffff, 0.5);
@@ -34,7 +29,6 @@ for (let i = 0; i < 4; i++) {
 }
 
 // model
-let cylinder;
 const createCoin = (text, font, color, position, rotation) => {
 	const textGeometry = new TextGeometry(text, {
 		font: font,
@@ -59,30 +53,53 @@ const createCoin = (text, font, color, position, rotation) => {
 	textMesh.rotation.x = -Math.PI / 2;
 
 	const cylinderGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 50);
-	const cylinderMaterial = new THREE.MeshBasicMaterial({
+	const cylinderMaterial = new THREE.MeshPhysicalMaterial({
 		color: color,
-		side: THREE.DoubleSide,
+		roughness: 0.7,
+		metalness: 0.1,
+		reflectivity: 0.6,
 	});
-	cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
 	cylinder.rotation.x = Math.PI / 2;
 	cylinder.rotation.z = rotation;
 	cylinder.position.copy(position);
-
+	cylinder.userData.initialPosition = position.clone();
 	cylinder.add(textMesh);
 	scene.add(cylinder);
 };
 
 const loader = new FontLoader();
+const coins = [
+	{ text: 'Figma', color: 0x005500, rotationZ: -0.4 },
+	{ text: 'GSAP', color: 0x00ff00, rotationZ: 0 },
+	{ text: 'Pixi', color: 0x550000, rotationZ: 0.4 },
+	{ text: 'Three', color: 0xff0000, rotationZ: -0.4 },
+	{ text: 'Scss', color: 0x000022, rotationZ: 0 },
+	{ text: 'Svg', color: 0x000055, rotationZ: 0.4 },
+	{ text: 'Vue', color: 0x000055, rotationZ: -0.4 },
+	{ text: 'Nuxt', color: 0x002200, rotationZ: 0 },
+	{ text: 'Canvas', color: 0x0000ff, rotationZ: 0.4 },
+];
+const rows = 3;
+const cols = 3;
+const gap = 7;
+
 loader.load(
 	'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
 	font => {
-		createCoin('Vue', font, 0x000055, new THREE.Vector3(-15, -1, 0), 0.7);
-		createCoin('Three', font, 0xff0000, new THREE.Vector3(-10, 1, 0), -0.7);
-		createCoin('GSAP', font, 0x00ff00, new THREE.Vector3(-5, 0, 0), 0);
-		createCoin('Canvas', font, 0x0000ff, new THREE.Vector3(0, -1, 0), 0.7);
-		createCoin('Pixi', font, 0x550000, new THREE.Vector3(5, -1, 0), 0.7);
-		createCoin('Figma', font, 0x005500, new THREE.Vector3(10, -1, 0), 0.7);
-		createCoin('Svg', font, 0x000055, new THREE.Vector3(15, -1, 0), 0.7);
+		for (let i = 0; i < coins.length; i++) {
+			const row = Math.floor(i / rows);
+			const col = i % cols;
+			const x = col * gap - (gap * (cols - 1)) / 2;
+			const y = row * gap - (gap * (rows - 1)) / 2;
+			createCoin(
+				coins[i].text,
+				font,
+				coins[i].color,
+				new THREE.Vector3(x, y, 0),
+				coins[i].rotationZ,
+			);
+		}
 	},
 );
 
@@ -103,6 +120,7 @@ function animate() {
 	camera.updateMatrixWorld();
 	renderer.render(scene, camera);
 
+	// lights 회전
 	if (lights) {
 		const r = 15;
 		const gap = THREE.MathUtils.degToRad(360 / lights.length);
@@ -115,30 +133,32 @@ function animate() {
 		});
 	}
 
+	// coins move 이벤트
 	raycaster.setFromCamera(mouse, camera);
-	// calculate objects intersecting the picking ray
-	const intersects = raycaster.intersectObjects(scene.children, true);
 
-	// loop through each cylinder and check if the mouse is close enough
+	const intersects = raycaster.intersectObjects(scene.children);
 	for (const object of scene.children) {
-		if (object instanceof THREE.Mesh) {
-			const distance =
-				intersects.length > 0
-					? intersects[0].point.distanceTo(object.position)
-					: 100;
-			if (distance < 5) {
-				const direction = new THREE.Vector3()
-					.subVectors(object.position, intersects[0].point)
-					.normalize();
-				object.position.addScaledVector(direction, 0.01);
-			}
-		}
+		const initialPosition = object.userData.initialPosition;
+		const intersected = intersects.some(i => i.object === object);
+		const targetPosition = intersected
+			? initialPosition
+					.clone()
+					.add(
+						intersects[0].point
+							.clone()
+							.sub(initialPosition)
+							.normalize()
+							.multiplyScalar(-0.5),
+					)
+			: initialPosition;
+
+		gsap.to(object.position, { duration: 0.5, ...targetPosition });
 	}
 
 	raf = requestAnimationFrame(animate);
 }
 
-const onmouseMove = e => {
+const onMouseMove = e => {
 	mouse.x = (e.clientX / containerRef.value.offsetWidth) * 2 - 1;
 	mouse.y = -(e.clientY / containerRef.value.offsetHeight) * 2 + 1;
 };
@@ -165,7 +185,7 @@ onMounted(() => {
 	init();
 	animate();
 
-	renderer.domElement.addEventListener('mousemove', onmouseMove);
+	renderer.domElement.addEventListener('mousemove', onMouseMove);
 	window.addEventListener('resize', onResize);
 });
 
@@ -173,6 +193,7 @@ onBeforeUnmount(() => {
 	cancelAnimationFrame(raf);
 	renderer.dispose();
 
+	renderer.domElement.removeEventListener('mousemove', onMouseMove);
 	window.removeEventListener('resize', onResize);
 });
 </script>
