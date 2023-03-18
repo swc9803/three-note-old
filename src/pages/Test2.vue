@@ -14,6 +14,7 @@ import gsap from 'gsap';
 const containerRef = ref();
 let camera;
 let raf;
+let coinRaf;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -21,6 +22,9 @@ const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 scene.background = new THREE.Color(0x555555);
 
+const light = new THREE.DirectionalLight(0xffffff, 0.6);
+light.position.set(1, 1, 1);
+scene.add(light);
 const lights = [];
 for (let i = 0; i < 4; i++) {
 	const spotLight = new THREE.SpotLight(0xffffff, 0.5);
@@ -29,6 +33,8 @@ for (let i = 0; i < 4; i++) {
 }
 
 // model
+let cylinders = [];
+let cylinder;
 const createCoin = (text, font, color, position, rotation) => {
 	const textGeometry = new TextGeometry(text, {
 		font: font,
@@ -57,20 +63,36 @@ const createCoin = (text, font, color, position, rotation) => {
 		color: color,
 		roughness: 0.7,
 		metalness: 0.1,
-		reflectivity: 0.6,
+		reflectivity: 0.3,
 	});
-	const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
 	cylinder.rotation.x = Math.PI / 2;
 	cylinder.rotation.z = rotation;
 	cylinder.position.copy(position);
 	cylinder.userData.initialPosition = position.clone();
 	cylinder.add(textMesh);
 	scene.add(cylinder);
+	cylinders.push(cylinder);
 };
+
+// setTimeout(() => {
+// 	cancelAnimationFrame(coinRaf);
+// 	for (let i = 0; i < cylinders.length; i++) {
+// 		gsap.to(cylinders[i].position, {
+// 			x: 0,
+// 			y: 0,
+// 			z: 0,
+// 			ease: 'bounce',
+// 		});
+// 	}
+// 	setTimeout(() => {
+// 		requestAnimationFrame(coinAnimate);
+// 	}, 3000);
+// }, 3000);
 
 const loader = new FontLoader();
 const coins = [
-	{ text: 'Figma', color: 0x005500, rotationZ: -0.4 },
+	{ text: 'Figma', color: 0x005500, rotationZ: -0.3 },
 	{ text: 'GSAP', color: 0x00ff00, rotationZ: 0 },
 	{ text: 'Pixi', color: 0x550000, rotationZ: 0.4 },
 	{ text: 'Three', color: 0xff0000, rotationZ: -0.4 },
@@ -78,11 +100,11 @@ const coins = [
 	{ text: 'Svg', color: 0x000055, rotationZ: 0.4 },
 	{ text: 'Vue', color: 0x000055, rotationZ: -0.4 },
 	{ text: 'Nuxt', color: 0x002200, rotationZ: 0 },
-	{ text: 'Canvas', color: 0x0000ff, rotationZ: 0.4 },
+	{ text: 'Canvas', color: 0x0000ff, rotationZ: 0.3 },
 ];
 const rows = 3;
 const cols = 3;
-const gap = 7;
+const gap = 6.5;
 
 loader.load(
 	'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
@@ -114,28 +136,7 @@ function init() {
 	controls.update();
 }
 
-let time = 0;
-function animate() {
-	time += 0.005;
-	camera.updateMatrixWorld();
-	renderer.render(scene, camera);
-
-	// lights 회전
-	if (lights) {
-		const r = 15;
-		const gap = THREE.MathUtils.degToRad(360 / lights.length);
-		lights.forEach((light, i) => {
-			light.position.set(
-				gap * i,
-				Math.cos(time + gap * i) * r,
-				Math.sin(time + gap * i) * r,
-			);
-		});
-	}
-
-	// coins move 이벤트
-	raycaster.setFromCamera(mouse, camera);
-
+function coinAnimate() {
 	const intersects = raycaster.intersectObjects(scene.children);
 	for (const object of scene.children) {
 		const initialPosition = object.userData.initialPosition;
@@ -153,6 +154,29 @@ function animate() {
 			: initialPosition;
 
 		gsap.to(object.position, { duration: 0.5, ...targetPosition });
+	}
+
+	coinRaf = requestAnimationFrame(coinAnimate);
+}
+
+let time = 0;
+function animate() {
+	time += 0.005;
+	camera.updateMatrixWorld();
+	renderer.render(scene, camera);
+	raycaster.setFromCamera(mouse, camera);
+
+	// lights 회전
+	if (lights) {
+		const r = 15;
+		const gap = THREE.MathUtils.degToRad(360 / lights.length);
+		lights.forEach((light, i) => {
+			light.position.set(
+				gap * i,
+				Math.cos(time + gap * i) * r,
+				Math.sin(time + gap * i) * r,
+			);
+		});
 	}
 
 	raf = requestAnimationFrame(animate);
@@ -184,6 +208,7 @@ onMounted(() => {
 
 	init();
 	animate();
+	coinAnimate();
 
 	renderer.domElement.addEventListener('mousemove', onMouseMove);
 	window.addEventListener('resize', onResize);
@@ -191,6 +216,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	cancelAnimationFrame(raf);
+	cancelAnimationFrame(coinRaf);
 	renderer.dispose();
 
 	renderer.domElement.removeEventListener('mousemove', onMouseMove);
