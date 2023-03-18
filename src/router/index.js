@@ -11,6 +11,7 @@ import Hdr from '../pages/Hdr.vue';
 import Jewel from '../pages/Jewel.vue';
 import Test from '../pages/Test.vue';
 import Test2 from '../pages/Test2.vue';
+import Test3 from '../pages/Test3.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -74,6 +75,11 @@ const router = createRouter({
 			path: '/test2',
 			name: 'test2',
 			component: Test2,
+		},
+		{
+			path: '/test3',
+			name: 'test3',
+			component: Test3,
 		},
 	],
 });

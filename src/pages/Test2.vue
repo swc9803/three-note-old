@@ -23,7 +23,6 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 scene.background = new THREE.Color(0x555555);
 
 const light = new THREE.DirectionalLight(0xffffff, 0.6);
-light.position.set(1, 1, 1);
 scene.add(light);
 const lights = [];
 for (let i = 0; i < 4; i++) {
@@ -168,7 +167,7 @@ function animate() {
 
 	// lights 회전
 	if (lights) {
-		const r = 15;
+		const r = 25;
 		const gap = THREE.MathUtils.degToRad(360 / lights.length);
 		lights.forEach((light, i) => {
 			light.position.set(
