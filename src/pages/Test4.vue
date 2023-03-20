@@ -30,10 +30,7 @@ const onMouseMove = e => {
 	if (startY !== null) {
 		currentY = e.clientY;
 		delta = currentY - startY;
-		progress = Math.min(
-			Math.abs(Math.max((currentY - startY) / window.innerHeight, -1)),
-			1,
-		);
+		progress = Math.min(Math.abs(delta / window.innerHeight), 1);
 		if (section1) {
 			if (delta > 0) {
 				sectionAni1.pause();
@@ -47,11 +44,9 @@ const onMouseMove = e => {
 				sectionAni1.pause();
 				sectionAni1.progress(1 - progress);
 			}
-		} else if (section3) {
-			if (delta <= 0) {
-				sectionAni2.pause();
-				sectionAni2.progress(1 - progress);
-			}
+		} else if (section3 && delta <= 0) {
+			sectionAni2.pause();
+			sectionAni2.progress(1 - progress);
 		}
 	}
 };
@@ -77,7 +72,11 @@ const onMouseUp = () => {
 			section2 = false;
 			console.log('move to 1');
 		} else {
-			sectionAni2.progress(0);
+			if (delta < 0) {
+				sectionAni1.play();
+			} else if (delta > 0) {
+				sectionAni2.reverse();
+			}
 		}
 	} else if (section3) {
 		if (delta < -75) {
