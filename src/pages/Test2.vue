@@ -7,6 +7,7 @@
 <script setup>
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import gsap from 'gsap';
@@ -31,6 +32,15 @@ for (let i = 0; i < 4; i++) {
 	scene.add(spotLight);
 }
 
+const setupHdrModel = () => {
+	new RGBELoader().load('/brown_photostudio_03_4k.hdr', texture => {
+		texture.mapping = THREE.EquirectangularReflectionMapping;
+		scene.background = texture;
+		scene.environment = texture;
+		scene.backgroundBlurriness = 0.1;
+	});
+};
+
 // model
 let cylinders = [];
 let cylinder;
@@ -38,7 +48,7 @@ const createCoin = (text, font, color, position, rotation) => {
 	const textGeometry = new TextGeometry(text, {
 		font: font,
 		size: 1,
-		height: 0.1,
+		height: 0.5,
 		curveSegments: 12,
 		bevelEnabled: true,
 		bevelThickness: 0.03,
@@ -74,32 +84,32 @@ const createCoin = (text, font, color, position, rotation) => {
 	cylinders.push(cylinder);
 };
 
-// setTimeout(() => {
-// 	cancelAnimationFrame(coinRaf);
-// 	for (let i = 0; i < cylinders.length; i++) {
-// 		gsap.to(cylinders[i].position, {
-// 			x: 0,
-// 			y: 0,
-// 			z: 0,
-// 			ease: 'bounce',
-// 		});
-// 	}
-// 	setTimeout(() => {
-// 		requestAnimationFrame(coinAnimate);
-// 	}, 3000);
-// }, 3000);
+setTimeout(() => {
+	cancelAnimationFrame(coinRaf);
+	for (let i = 0; i < cylinders.length; i++) {
+		gsap.to(cylinders[i].position, {
+			x: 0,
+			y: 0,
+			z: 0,
+			ease: 'bounce',
+		});
+	}
+	setTimeout(() => {
+		requestAnimationFrame(coinAnimate);
+	}, 3000);
+}, 3000);
 
 const loader = new FontLoader();
 const coins = [
 	{ text: 'Figma', color: 0x005500, rotationZ: -0.3 },
 	{ text: 'GSAP', color: 0x00ff00, rotationZ: 0 },
 	{ text: 'Pixi', color: 0x550000, rotationZ: 0.4 },
-	{ text: 'Three', color: 0xff0000, rotationZ: -0.4 },
-	{ text: 'Scss', color: 0x000022, rotationZ: 0 },
-	{ text: 'Svg', color: 0x000055, rotationZ: 0.4 },
-	{ text: 'Vue', color: 0x000055, rotationZ: -0.4 },
-	{ text: 'Nuxt', color: 0x002200, rotationZ: 0 },
-	{ text: 'Canvas', color: 0x0000ff, rotationZ: 0.3 },
+	{ text: 'Three', color: 0x000000, rotationZ: -0.4 },
+	{ text: 'Scss', color: 0xc66394, rotationZ: 0 },
+	{ text: 'Svg', color: 0xde7a24, rotationZ: 0.4 },
+	{ text: 'Vue', color: 0x33475b, rotationZ: -0.4 },
+	{ text: 'Nuxt', color: 0x108371, rotationZ: 0 },
+	{ text: 'Canvas', color: 0xf0d91d, rotationZ: 0.3 },
 ];
 const rows = 3;
 const cols = 3;
@@ -204,6 +214,8 @@ onMounted(() => {
 		1000,
 	);
 	camera.position.set(0, 0, 20);
+
+	setupHdrModel();
 
 	init();
 	animate();

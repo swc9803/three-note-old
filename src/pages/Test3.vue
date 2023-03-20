@@ -1,5 +1,6 @@
 <template>
 	<div class="wrapper">
+		<div class="box"></div>
 		<div ref="containerRef" class="container" />
 	</div>
 </template>
@@ -144,24 +145,39 @@ onMounted(() => {
 	init();
 	animate();
 
-	setTimeout(() => {
-		cubes.children.forEach(cube => {
-			gsap.to(cube.scale, {
-				x: 0.75,
-				y: 0.75,
-				onComplete: () => {
-					gsap.to(cube.scale, {
-						x: 0.2,
-						y: 0.2,
-					});
-					gsap.to(cube.position, {
-						x: 0,
-						y: 0,
-					});
-				},
-			});
-		});
-	}, 4000);
+	const box = document.querySelector('.box');
+
+	// 애니메이션 실행
+	let startTime;
+	const animation = currentTime => {
+		if (!startTime) {
+			startTime = currentTime;
+		}
+		const elapsedTime = currentTime - startTime;
+		const boxTop = elapsedTime / 10;
+		box.style.top = boxTop + 'px';
+		requestAnimationFrame(animation);
+	};
+	requestAnimationFrame(animation);
+
+	// setTimeout(() => {
+	// 	cubes.children.forEach(cube => {
+	// 		gsap.to(cube.scale, {
+	// 			x: 0.75,
+	// 			y: 0.75,
+	// 			onComplete: () => {
+	// 				gsap.to(cube.scale, {
+	// 					x: 0.2,
+	// 					y: 0.2,
+	// 				});
+	// 				gsap.to(cube.position, {
+	// 					x: 0,
+	// 					y: 0,
+	// 				});
+	// 			},
+	// 		});
+	// 	});
+	// }, 4000);
 
 	renderer.domElement.addEventListener('mousemove', onMouseMove);
 	window.addEventListener('resize', onResize);
@@ -178,8 +194,18 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .wrapper {
+	position: relative;
 	width: 100%;
 	height: calc(var(--vh) * 100);
+	overflow: hidden;
+	.box {
+		position: absolute;
+		top: 0;
+		width: 100px;
+		height: 100px;
+		background: red;
+		z-index: 99;
+	}
 	.container {
 		position: relative;
 		width: 100%;
