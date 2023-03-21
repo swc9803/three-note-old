@@ -14,6 +14,8 @@
 			<RouterLink to="/test2">Test2</RouterLink>
 			<RouterLink to="/test3">Test3</RouterLink>
 			<RouterLink to="/test4">Test4</RouterLink>
+			<RouterLink to="/test5">Test5</RouterLink>
+			<RouterLink to="/test6">Test6</RouterLink>
 		</ul>
 	</nav>
 </template>

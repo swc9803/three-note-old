@@ -7,7 +7,7 @@
 <script setup>
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+// import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import gsap from 'gsap';
@@ -32,14 +32,14 @@ for (let i = 0; i < 4; i++) {
 	scene.add(spotLight);
 }
 
-const setupHdrModel = () => {
-	new RGBELoader().load('/brown_photostudio_03_4k.hdr', texture => {
-		texture.mapping = THREE.EquirectangularReflectionMapping;
-		scene.background = texture;
-		scene.environment = texture;
-		scene.backgroundBlurriness = 0.1;
-	});
-};
+// const setupHdrModel = () => {
+// 	new RGBELoader().load('/brown_photostudio_03_4k.hdr', texture => {
+// 		texture.mapping = THREE.EquirectangularReflectionMapping;
+// 		scene.background = texture;
+// 		scene.environment = texture;
+// 		scene.backgroundBlurriness = 0.1;
+// 	});
+// };
 
 // model
 let cylinders = [];
@@ -59,7 +59,7 @@ const createCoin = (text, font, color, position, rotation) => {
 	textGeometry.center();
 
 	const textMaterial = new THREE.MeshStandardMaterial({
-		color: 0xffffff,
+		color: 0xfcff6d,
 		roughness: 0.3,
 		metalness: 0.7,
 	});
@@ -84,20 +84,20 @@ const createCoin = (text, font, color, position, rotation) => {
 	cylinders.push(cylinder);
 };
 
-setTimeout(() => {
-	cancelAnimationFrame(coinRaf);
-	for (let i = 0; i < cylinders.length; i++) {
-		gsap.to(cylinders[i].position, {
-			x: 0,
-			y: 0,
-			z: 0,
-			ease: 'bounce',
-		});
-	}
-	setTimeout(() => {
-		requestAnimationFrame(coinAnimate);
-	}, 3000);
-}, 3000);
+// setTimeout(() => {
+// 	cancelAnimationFrame(coinRaf);
+// 	for (let i = 0; i < cylinders.length; i++) {
+// 		gsap.to(cylinders[i].position, {
+// 			x: 0,
+// 			y: 0,
+// 			z: 0,
+// 			ease: 'bounce',
+// 		});
+// 	}
+// 	setTimeout(() => {
+// 		requestAnimationFrame(coinAnimate);
+// 	}, 3000);
+// }, 3000);
 
 const loader = new FontLoader();
 const coins = [
@@ -215,7 +215,7 @@ onMounted(() => {
 	);
 	camera.position.set(0, 0, 20);
 
-	setupHdrModel();
+	// setupHdrModel();
 
 	init();
 	animate();
