@@ -131,18 +131,6 @@ onMounted(() => {
 			this.scene.add(light);
 		}
 
-		addFloor() {
-			const geometry = new THREE.PlaneGeometry(100, 100);
-			const material = new THREE.ShadowMaterial();
-
-			this.floor = new THREE.Mesh(geometry, material);
-			this.floor.position.y = 0;
-			this.floor.receiveShadow = true;
-			this.floor.rotateX(-Math.PI / 2);
-
-			this.scene.add(this.floor);
-		}
-
 		getRandomGeometry() {
 			return this.geometries[
 				Math.floor(Math.random() * Math.floor(this.geometries.length))
@@ -232,7 +220,9 @@ onMounted(() => {
 		draw() {
 			this.raycaster.setFromCamera(this.mouse3D, this.camera);
 
-			const intersects = this.raycaster.intersectObjects([this.floor]);
+			const intersects = this.raycaster.intersectObjects(
+				this.scene.children,
+			);
 
 			if (intersects.length) {
 				const { x, z } = intersects[0].point;
@@ -302,7 +292,6 @@ onMounted(() => {
 			this.createScene();
 			this.createCamera();
 			this.createGrid();
-			this.addFloor();
 			this.addAmbientLight();
 			this.addSpotLight();
 			this.addPointLight(0xe2a9e5, {

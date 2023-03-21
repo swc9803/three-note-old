@@ -32,9 +32,13 @@ let section3 = false; // 보석
 //   input.value.style.fontSize = `${sizeValue.value / 5}em`;
 // });
 
+let activeRaycaster = false;
 const sectionAni1 = gsap.timeline({
 	paused: true,
-	onComplete: () => (isAnimated = false),
+	onComplete: () => {
+		isAnimated = false;
+		activeRaycaster = true;
+	},
 	onReverseComplete: () => (isAnimated = false),
 });
 const sectionAni2 = gsap.timeline({ paused: true });
@@ -181,7 +185,7 @@ let cylindersTweens = [];
 let cylinders = new THREE.Group();
 scene.add(cylinders);
 let cylinder;
-const createCoin = (text, font, color, position, rotation) => {
+const createCoin = (i, text, font, color, position, rotation) => {
 	const textGeometry = new TextGeometry(text, {
 		font: font,
 		size: 1,
@@ -212,6 +216,7 @@ const createCoin = (text, font, color, position, rotation) => {
 		reflectivity: 0.3,
 	});
 	cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder.name = `coin${i}`;
 	cylinder.rotation.x = Math.PI / 2;
 	cylinder.rotation.z = rotation;
 	cylinder.position.copy(position);
@@ -247,6 +252,7 @@ fontLoader.load(
 			const x = col * gap - (gap * (cols - 1)) / 2;
 			const y = row * gap - (gap * (rows - 1)) / 2;
 			createCoin(
+				i,
 				coins[i].text,
 				font,
 				coins[i].color,
@@ -286,6 +292,43 @@ function init() {
 function animate() {
 	time += 0.005;
 	camera.updateMatrixWorld();
+	camera.position.x += (-mouse.x - camera.position.x) * 0.01;
+	camera.position.y += (-mouse.y - camera.position.y) * 0.01;
+	camera.lookAt(0, 0, 0);
+
+	if (activeRaycaster) {
+		const intersects = raycaster.intersectObjects(scene.children, true);
+		if (intersects.length > 0) {
+			const object = intersects[0].object;
+			if (object.name.startsWith('coin')) {
+				gsap.to(object.scale, {
+					x: 1.2,
+					y: 1.2,
+					z: 1.2,
+				});
+				scene.traverse(child => {
+					if (child.name.startsWith('coin') && child !== object) {
+						gsap.to(child.scale, {
+							x: 1,
+							y: 1,
+							z: 1,
+						});
+					}
+				});
+			}
+		} else {
+			scene.traverse(child => {
+				if (child.name.startsWith('coin')) {
+					gsap.to(child.scale, {
+						x: 1,
+						y: 1,
+						z: 1,
+					});
+				}
+			});
+		}
+	}
+
 	renderer.render(scene, camera);
 	raycaster.setFromCamera(mouse, camera);
 
@@ -311,11 +354,9 @@ const onMouseDown = e => {
 	}
 };
 const onMouseMove = e => {
+	mouse.x = (e.clientX / containerRef.value.offsetWidth) * 2 - 1;
+	mouse.y = -(e.clientY / containerRef.value.offsetHeight) * 2 + 1;
 	if (!isAnimated) {
-		mouse.x = (e.clientX / containerRef.value.offsetWidth) * 2 - 1;
-		mouse.y = -(e.clientY / containerRef.value.offsetHeight) * 2 + 1;
-		cubes.rotation.x = -mouse.y * 0.3;
-		cubes.rotation.y = mouse.x * 0.9;
 		if (startY !== null) {
 			currentY = e.clientY;
 			delta = currentY - startY;
