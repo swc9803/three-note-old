@@ -5,11 +5,11 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
 import * as THREE from 'three';
-// import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
 
 const containerRef = ref();
@@ -28,10 +28,6 @@ let section2 = false; // 스킬
 let section3 = false; // 보석
 // let section4 = false;   // 꿈
 
-// watch(sizeValue, () => {
-//   input.value.style.fontSize = `${sizeValue.value / 5}em`;
-// });
-
 let activeRaycaster = false;
 const sectionAni1 = gsap.timeline({
 	paused: true,
@@ -39,15 +35,29 @@ const sectionAni1 = gsap.timeline({
 		isAnimated = false;
 		activeRaycaster = true;
 	},
-	onReverseComplete: () => (isAnimated = false),
+	onReverseComplete: () => {
+		isAnimated = false;
+		activeRaycaster = false;
+	},
 });
-const sectionAni2 = gsap.timeline({ paused: true });
+const sectionAni2 = gsap.timeline({
+	paused: true,
+	onComplete: () => {
+		isAnimated = false;
+		activeRaycaster = false;
+	},
+	onReverseComplete: () => {
+		isAnimated = false;
+		activeRaycaster = true;
+	},
+});
 
 const mouse = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 const scene = new THREE.Scene();
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-scene.background = new THREE.Color(0x555555);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMappingExposure = 2.5;
 
 // light
 const light = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -159,21 +169,31 @@ image.onload = () => {
 	// 조건문으로 로드 되면 수정
 	setTimeout(() => {
 		cylinders.children.forEach(cylinder => {
-			const cylinderTween1 = gsap.from(cylinder.rotation, {
-				z: -1,
-			});
-			const cylinderTween2 = gsap.to(cylinder.scale, {
+			const cylinderTween1 = gsap.to(cylinder.scale, {
 				x: 1,
 				y: 1,
 				z: 1,
 			});
-			const cylinderTween3 = gsap.from(cylinder.position, {
+			const cylinderTween2 = gsap.from(cylinder.position, {
 				x: 0,
 				y: 0,
+				onStart: () => {
+					gsap.to(cylinders.scale, {
+						x: 1,
+						y: 1,
+						z: 1,
+					});
+				},
+				onReverseComplete: () => {
+					gsap.set(cylinders.scale, {
+						x: 0,
+						y: 0,
+						z: 0,
+					});
+				},
 			});
 			cylindersTweens.push(cylinderTween1);
 			cylindersTweens.push(cylinderTween2);
-			cylindersTweens.push(cylinderTween3);
 		});
 		sectionAni1.add(cylindersTweens);
 	}, 2000);
@@ -242,7 +262,6 @@ const coins = [
 const rows = 3;
 const cols = 3;
 const gap = 6.5;
-
 fontLoader.load(
 	'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
 	font => {
@@ -260,25 +279,73 @@ fontLoader.load(
 				coins[i].rotationZ,
 			);
 		}
-
-		cylinders.children.forEach(cylinder => {
-			gsap.fromTo(
-				cylinder.rotation,
-				{
-					z: '+=0.5',
-				},
-				{
-					z: '-=1',
-					duration: 4,
-					delay: Math.random() * 0.5,
-					ease: 'none',
-					yoyo: true,
-					repeat: -1,
-				},
-			);
-		});
 	},
 );
+
+// section3 model
+let diamond;
+let ringModel;
+const setupModel = () => {
+	// new RGBELoader().load('/brown_photostudio_03_4k.hdr', texture => {
+	// 	texture.mapping = THREE.EquirectangularReflectionMapping;
+	// 	scene.background = texture;
+	// 	scene.environment = texture;
+	// 	scene.backgroundBlurriness = 0.1;
+
+	const goldMaterial = new THREE.MeshStandardMaterial({
+		color: new THREE.Color('#D4AF37'),
+		// envMap: texture,
+		// envMapIntensity: 1,
+		metalness: 1,
+		roughness: 0.15,
+	});
+
+	const gemMaterial = new THREE.MeshPhysicalMaterial({
+		color: new THREE.Color('#6AB04C'),
+		metalness: 0.5,
+		roughness: 0,
+		opacity: 0.8,
+		side: THREE.DoubleSide,
+		transparent: true,
+		transmission: 0.5,
+		ior: 2.4,
+		thickness: 0.3,
+	});
+
+	const gltfLoader = new GLTFLoader();
+	gltfLoader.load('/diamond.glb', model => {
+		diamond = model.scene;
+		diamond.traverse(function (node) {
+			if (node.isMesh) {
+				node.name = 'diamond';
+			}
+		});
+		diamond.position.set(0, -1.5, 0);
+		scene.add(diamond);
+
+		sectionAni2.to(diamond.scale, {
+			x: 2,
+			y: 2,
+			z: 2,
+		});
+	});
+	gltfLoader.load('/ring.glb', gltf => {
+		ringModel = gltf.scene;
+		ringModel.scale.set(0.3, 0.3, 0.3);
+		scene.add(ringModel);
+
+		ringModel.traverse(child => {
+			if (child instanceof THREE.Mesh) {
+				if (child.name.startsWith('GEM')) {
+					child.material = gemMaterial;
+				} else {
+					child.material = goldMaterial;
+				}
+			}
+		});
+	});
+	// });
+};
 
 function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -296,36 +363,18 @@ function animate() {
 	camera.position.y += (-mouse.y - camera.position.y) * 0.01;
 	camera.lookAt(0, 0, 0);
 
-	if (activeRaycaster) {
+	if (activeRaycaster && !isAnimated) {
 		const intersects = raycaster.intersectObjects(scene.children, true);
 		if (intersects.length > 0) {
 			const object = intersects[0].object;
+			console.log(intersects.length, intersects);
 			if (object.name.startsWith('coin')) {
-				gsap.to(object.scale, {
-					x: 1.2,
-					y: 1.2,
-					z: 1.2,
-				});
-				scene.traverse(child => {
-					if (child.name.startsWith('coin') && child !== object) {
-						gsap.to(child.scale, {
-							x: 1,
-							y: 1,
-							z: 1,
-						});
-					}
+				gsap.to(object.rotation, {
+					z: '+=1',
+					duration: 0.5,
+					ease: 'power1',
 				});
 			}
-		} else {
-			scene.traverse(child => {
-				if (child.name.startsWith('coin')) {
-					gsap.to(child.scale, {
-						x: 1,
-						y: 1,
-						z: 1,
-					});
-				}
-			});
 		}
 	}
 
@@ -453,6 +502,8 @@ onMounted(() => {
 		1000,
 	);
 	camera.position.set(0, 0, 10);
+
+	setupModel();
 
 	init();
 	animate();
