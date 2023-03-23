@@ -6,10 +6,10 @@
 
 <script setup>
 import * as THREE from 'three';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+// import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
 
 const containerRef = ref();
@@ -56,8 +56,8 @@ const mouse = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.toneMappingExposure = 2.5;
+// renderer.outputEncoding = THREE.sRGBEncoding;
+// renderer.toneMappingExposure = 2.5;
 
 // light
 const light = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -283,69 +283,69 @@ fontLoader.load(
 );
 
 // section3 model
-let diamond;
-let ringModel;
-const setupModel = () => {
-	// new RGBELoader().load('/brown_photostudio_03_4k.hdr', texture => {
-	// 	texture.mapping = THREE.EquirectangularReflectionMapping;
-	// 	scene.background = texture;
-	// 	scene.environment = texture;
-	// 	scene.backgroundBlurriness = 0.1;
+// let diamond;
+// let ringModel;
+// const setupModel = () => {
+// 	// new RGBELoader().load('/brown_photostudio_03_4k.hdr', texture => {
+// 	// 	texture.mapping = THREE.EquirectangularReflectionMapping;
+// 	// 	scene.background = texture;
+// 	// 	scene.environment = texture;
+// 	// 	scene.backgroundBlurriness = 0.1;
 
-	const goldMaterial = new THREE.MeshStandardMaterial({
-		color: new THREE.Color('#D4AF37'),
-		// envMap: texture,
-		// envMapIntensity: 1,
-		metalness: 1,
-		roughness: 0.15,
-	});
+// 	const goldMaterial = new THREE.MeshStandardMaterial({
+// 		color: new THREE.Color('#D4AF37'),
+// 		// envMap: texture,
+// 		// envMapIntensity: 1,
+// 		metalness: 1,
+// 		roughness: 0.15,
+// 	});
 
-	const gemMaterial = new THREE.MeshPhysicalMaterial({
-		color: new THREE.Color('#6AB04C'),
-		metalness: 0.5,
-		roughness: 0,
-		opacity: 0.8,
-		side: THREE.DoubleSide,
-		transparent: true,
-		transmission: 0.5,
-		ior: 2.4,
-		thickness: 0.3,
-	});
+// 	const gemMaterial = new THREE.MeshPhysicalMaterial({
+// 		color: new THREE.Color('#6AB04C'),
+// 		metalness: 0.5,
+// 		roughness: 0,
+// 		opacity: 0.8,
+// 		side: THREE.DoubleSide,
+// 		transparent: true,
+// 		transmission: 0.5,
+// 		ior: 2.4,
+// 		thickness: 0.3,
+// 	});
 
-	const gltfLoader = new GLTFLoader();
-	gltfLoader.load('/diamond.glb', model => {
-		diamond = model.scene;
-		diamond.traverse(function (node) {
-			if (node.isMesh) {
-				node.name = 'diamond';
-			}
-		});
-		diamond.position.set(0, -1.5, 0);
-		scene.add(diamond);
+// 	const gltfLoader = new GLTFLoader();
+// 	gltfLoader.load('/diamond.glb', model => {
+// 		diamond = model.scene;
+// 		diamond.traverse(function (node) {
+// 			if (node.isMesh) {
+// 				node.name = 'diamond';
+// 			}
+// 		});
+// 		diamond.position.set(0, -1.5, 0);
+// 		scene.add(diamond);
 
-		sectionAni2.to(diamond.scale, {
-			x: 2,
-			y: 2,
-			z: 2,
-		});
-	});
-	gltfLoader.load('/ring.glb', gltf => {
-		ringModel = gltf.scene;
-		ringModel.scale.set(0.3, 0.3, 0.3);
-		scene.add(ringModel);
+// 		sectionAni2.to(diamond.scale, {
+// 			x: 2,
+// 			y: 2,
+// 			z: 2,
+// 		});
+// 	});
+// 	gltfLoader.load('/ring.glb', gltf => {
+// 		ringModel = gltf.scene;
+// 		ringModel.scale.set(0.3, 0.3, 0.3);
+// 		scene.add(ringModel);
 
-		ringModel.traverse(child => {
-			if (child instanceof THREE.Mesh) {
-				if (child.name.startsWith('GEM')) {
-					child.material = gemMaterial;
-				} else {
-					child.material = goldMaterial;
-				}
-			}
-		});
-	});
-	// });
-};
+// 		ringModel.traverse(child => {
+// 			if (child instanceof THREE.Mesh) {
+// 				if (child.name.startsWith('GEM')) {
+// 					child.material = gemMaterial;
+// 				} else {
+// 					child.material = goldMaterial;
+// 				}
+// 			}
+// 		});
+// 	});
+// 	// });
+// };
 
 function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -365,10 +365,22 @@ function animate() {
 
 	if (activeRaycaster && !isAnimated) {
 		const intersects = raycaster.intersectObjects(scene.children, true);
+		// if (intersects.length > 0) {
+		// 	const object = intersects[0].object;
+		// 	console.log(object.name);
+		// 	if (object.name.startsWith('coin')) {
+		// 		gsap.to(object.rotation, {
+		// 			z: '+=1',
+		// 			duration: 0.5,
+		// 			ease: 'power1',
+		// 		});
+		// 	}
+		// }
 		if (intersects.length > 0) {
-			const object = intersects[0].object;
-			console.log(intersects.length, intersects);
-			if (object.name.startsWith('coin')) {
+			const object = intersects.find(intersect =>
+				intersect.object.name.startsWith('coin'),
+			)?.object;
+			if (object) {
 				gsap.to(object.rotation, {
 					z: '+=1',
 					duration: 0.5,
@@ -503,7 +515,7 @@ onMounted(() => {
 	);
 	camera.position.set(0, 0, 10);
 
-	setupModel();
+	// setupModel();
 
 	init();
 	animate();
