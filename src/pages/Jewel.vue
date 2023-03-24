@@ -50,7 +50,7 @@ let raf;
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.outputEncoding = THREE.sRGBEncoding; // 색상 출력을 sRGB 색상 공간으로 변환
 renderer.toneMappingExposure = 2.5;
 
 // light

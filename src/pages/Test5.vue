@@ -6,10 +6,10 @@
 
 <script setup>
 import * as THREE from 'three';
-// import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
 
 const containerRef = ref();
@@ -26,7 +26,7 @@ let isAnimated = true;
 let section1 = true; // 사진
 let section2 = false; // 스킬
 let section3 = false; // 보석
-// let section4 = false;   // 꿈
+let section4 = false; // 꿈
 
 let activeRaycaster = false;
 const sectionAni1 = gsap.timeline({
@@ -51,13 +51,24 @@ const sectionAni2 = gsap.timeline({
 		activeRaycaster = true;
 	},
 });
+const sectionAni3 = gsap.timeline({
+	paused: true,
+	onComplete: () => {
+		isAnimated = false;
+		activeRaycaster = false;
+	},
+	onReverseComplete: () => {
+		isAnimated = false;
+		activeRaycaster = true;
+	},
+});
 
 const mouse = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-// renderer.outputEncoding = THREE.sRGBEncoding;
-// renderer.toneMappingExposure = 2.5;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 2;
 
 // light
 const light = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -115,6 +126,7 @@ image.onload = () => {
 	for (let i = 0; i < parts.length; i++) {
 		const material = new THREE.MeshBasicMaterial({
 			map: textureLoader.load(parts[i].src),
+			toneMapped: false,
 		});
 		const cube = new THREE.Mesh(geometry, material);
 		const x = (i % 3) - 1;
@@ -223,6 +235,7 @@ const createCoin = (i, text, font, color, position, rotation) => {
 		color: 0xfcff6d,
 		roughness: 0.3,
 		metalness: 0.7,
+		toneMapped: false,
 	});
 	const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 	textMesh.position.set(0, 0.25, 0);
@@ -231,9 +244,10 @@ const createCoin = (i, text, font, color, position, rotation) => {
 	const cylinderGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 50);
 	const cylinderMaterial = new THREE.MeshPhysicalMaterial({
 		color: color,
-		roughness: 0.7,
-		metalness: 0.1,
-		reflectivity: 0.3,
+		roughness: 0.6,
+		metalness: 0.3,
+		reflectivity: 0.6,
+		toneMapped: false,
 	});
 	cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
 	cylinder.name = `coin${i}`;
@@ -283,69 +297,113 @@ fontLoader.load(
 );
 
 // section3 model
-// let diamond;
-// let ringModel;
-// const setupModel = () => {
-// 	// new RGBELoader().load('/brown_photostudio_03_4k.hdr', texture => {
-// 	// 	texture.mapping = THREE.EquirectangularReflectionMapping;
-// 	// 	scene.background = texture;
-// 	// 	scene.environment = texture;
-// 	// 	scene.backgroundBlurriness = 0.1;
+let diamond;
+const gltfLoader = new GLTFLoader();
+gltfLoader.load('/diamond.glb', model => {
+	diamond = model.scene;
+	diamond.scale.set(0, 0, 0);
+	diamond.rotation.set(0.25, 0, 0);
+	diamond.traverse(child => {
+		if (child instanceof THREE.Mesh) {
+			const material = child.material;
+			if (material instanceof THREE.MeshStandardMaterial) {
+				material.toneMapped = false;
+			}
+		}
+	});
+	scene.add(diamond);
 
-// 	const goldMaterial = new THREE.MeshStandardMaterial({
-// 		color: new THREE.Color('#D4AF37'),
-// 		// envMap: texture,
-// 		// envMapIntensity: 1,
-// 		metalness: 1,
-// 		roughness: 0.15,
-// 	});
+	sectionAni2.to(cylinders.scale, {
+		x: 0,
+		y: 0,
+		z: 0,
+	});
+	sectionAni2.to(diamond.scale, {
+		x: 2,
+		y: 2,
+		z: 2,
+	});
+});
 
-// 	const gemMaterial = new THREE.MeshPhysicalMaterial({
-// 		color: new THREE.Color('#6AB04C'),
-// 		metalness: 0.5,
-// 		roughness: 0,
-// 		opacity: 0.8,
-// 		side: THREE.DoubleSide,
-// 		transparent: true,
-// 		transmission: 0.5,
-// 		ior: 2.4,
-// 		thickness: 0.3,
-// 	});
+// section4
+let ringModel;
+const setupModel = () => {
+	new RGBELoader().load(
+		'/kloofendal_48d_partly_cloudy_puresky_4k.hdr',
+		texture => {
+			texture.mapping = THREE.EquirectangularReflectionMapping;
+			scene.background = texture;
+			scene.environment = texture;
 
-// 	const gltfLoader = new GLTFLoader();
-// 	gltfLoader.load('/diamond.glb', model => {
-// 		diamond = model.scene;
-// 		diamond.traverse(function (node) {
-// 			if (node.isMesh) {
-// 				node.name = 'diamond';
-// 			}
-// 		});
-// 		diamond.position.set(0, -1.5, 0);
-// 		scene.add(diamond);
+			const goldMaterial = new THREE.MeshStandardMaterial({
+				color: new THREE.Color('#D4AF37'),
+				envMap: texture,
+				envMapIntensity: 1,
+				metalness: 1,
+				roughness: 0.15,
+				toneMapped: false,
+			});
+			const gemMaterial = new THREE.MeshPhysicalMaterial({
+				color: new THREE.Color('#6AB04C'),
+				metalness: 0.5,
+				roughness: 0,
+				opacity: 0.8,
+				side: THREE.DoubleSide,
+				transparent: true,
+				transmission: 0.5,
+				ior: 2.4,
+				thickness: 0.3,
+				toneMapped: false,
+			});
 
-// 		sectionAni2.to(diamond.scale, {
-// 			x: 2,
-// 			y: 2,
-// 			z: 2,
-// 		});
-// 	});
-// 	gltfLoader.load('/ring.glb', gltf => {
-// 		ringModel = gltf.scene;
-// 		ringModel.scale.set(0.3, 0.3, 0.3);
-// 		scene.add(ringModel);
+			gltfLoader.load('/ring.glb', gltf => {
+				ringModel = gltf.scene;
+				ringModel.scale.set(0, 0, 0);
+				ringModel.traverse(child => {
+					if (child instanceof THREE.Mesh) {
+						if (child.name.startsWith('GEM')) {
+							child.material = gemMaterial;
+						} else {
+							child.material = goldMaterial;
+						}
+					}
+				});
+				scene.add(ringModel);
 
-// 		ringModel.traverse(child => {
-// 			if (child instanceof THREE.Mesh) {
-// 				if (child.name.startsWith('GEM')) {
-// 					child.material = gemMaterial;
-// 				} else {
-// 					child.material = goldMaterial;
-// 				}
-// 			}
-// 		});
-// 	});
-// 	// });
-// };
+				sectionAni3.to(ringModel.scale, {
+					x: 2,
+					y: 2,
+					z: 2,
+				});
+				sectionAni3.to(
+					ringModel.position,
+					{
+						x: 2,
+						y: 4,
+						z: 2,
+					},
+					'<',
+				);
+				sectionAni3.to(
+					diamond.position,
+					{
+						x: -2,
+						y: 2,
+						z: 1,
+					},
+					'<',
+				);
+				sectionAni3.to(
+					renderer,
+					{
+						toneMappingExposure: 0.1,
+					},
+					'<',
+				);
+			});
+		},
+	);
+};
 
 function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -365,26 +423,15 @@ function animate() {
 
 	if (activeRaycaster && !isAnimated) {
 		const intersects = raycaster.intersectObjects(scene.children, true);
-		// if (intersects.length > 0) {
-		// 	const object = intersects[0].object;
-		// 	console.log(object.name);
-		// 	if (object.name.startsWith('coin')) {
-		// 		gsap.to(object.rotation, {
-		// 			z: '+=1',
-		// 			duration: 0.5,
-		// 			ease: 'power1',
-		// 		});
-		// 	}
-		// }
 		if (intersects.length > 0) {
 			const object = intersects.find(intersect =>
 				intersect.object.name.startsWith('coin'),
 			)?.object;
 			if (object) {
 				gsap.to(object.rotation, {
-					z: '+=1',
-					duration: 0.5,
-					ease: 'power1',
+					z: '+=2',
+					duration: 2,
+					ease: 'back',
 				});
 			}
 		}
@@ -403,6 +450,10 @@ function animate() {
 				Math.sin(time + gap * i) * r,
 			);
 		});
+	}
+
+	if (section3) {
+		diamond.rotation.y = time * 0.4;
 	}
 
 	requestAnimationFrame(animate);
@@ -425,22 +476,28 @@ const onMouseMove = e => {
 				Math.abs((delta / containerRef.value.offsetHeight) * 0.5),
 				1,
 			);
-			if (section1) {
-				if (delta > 0) {
-					sectionAni1.pause();
-					sectionAni1.progress(progress);
-				}
+			if (section1 && delta > 0) {
+				sectionAni1.pause();
+				sectionAni1.progress(progress);
 			} else if (section2) {
 				if (delta > 0) {
 					sectionAni2.pause();
 					sectionAni2.progress(progress);
-				} else if (delta <= 0) {
+				} else {
 					sectionAni1.pause();
 					sectionAni1.progress(1 - progress);
 				}
-			} else if (section3 && delta <= 0) {
-				sectionAni2.pause();
-				sectionAni2.progress(1 - progress);
+			} else if (section3) {
+				if (delta > 0) {
+					sectionAni3.pause();
+					sectionAni3.progress(progress);
+				} else {
+					sectionAni2.pause();
+					sectionAni2.progress(1 - progress);
+				}
+			} else if (section4 && delta <= 0) {
+				sectionAni3.pause();
+				sectionAni3.progress(1 - progress);
 			}
 		}
 	}
@@ -479,14 +536,35 @@ const onMouseUp = () => {
 				}
 			}
 		} else if (section3) {
-			if (delta < -75) {
+			if (delta > 75) {
+				isAnimated = true;
+				sectionAni3.play();
+				section3 = false;
+				section4 = true;
+				console.log('move to 4');
+			} else if (delta < -75) {
 				isAnimated = true;
 				sectionAni2.reverse();
 				section2 = true;
 				section3 = false;
 				console.log('move to 2');
 			} else {
-				sectionAni2.progress(1);
+				if (delta < 0) {
+					isAnimated = true;
+					sectionAni2.play();
+				} else if (delta > 0) {
+					sectionAni3.reverse();
+				}
+			}
+		} else if (section4) {
+			if (delta < -75) {
+				isAnimated = true;
+				sectionAni3.reverse();
+				section3 = true;
+				section4 = false;
+				console.log('move to 3');
+			} else {
+				sectionAni3.progress(1);
 			}
 		}
 		progress = 0;
@@ -515,7 +593,7 @@ onMounted(() => {
 	);
 	camera.position.set(0, 0, 10);
 
-	// setupModel();
+	setupModel();
 
 	init();
 	animate();
