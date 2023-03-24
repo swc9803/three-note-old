@@ -115,13 +115,23 @@ function splitImage(image, rows, cols) {
 const cubesTweens = [];
 const cubes = new THREE.Group();
 scene.add(cubes);
+
 const textureLoader = new THREE.TextureLoader();
 const image = new Image();
 image.src = '/origin.png';
 image.onload = () => {
 	const parts = splitImage(image, 3, 3);
-	const boxSize = new THREE.Vector2(350, 466.67);
-	const geometry = new THREE.BoxGeometry(boxSize.x / 100, boxSize.y / 100, 1);
+
+	let cubeSize;
+	matchMedia('(max-width: 480px)').matches
+		? (cubeSize = new THREE.Vector2(180, 240))
+		: (cubeSize = new THREE.Vector2(360, 480));
+
+	const geometry = new THREE.BoxGeometry(
+		cubeSize.x / 100,
+		cubeSize.y / 100,
+		1,
+	);
 
 	for (let i = 0; i < parts.length; i++) {
 		const material = new THREE.MeshBasicMaterial({
@@ -131,7 +141,7 @@ image.onload = () => {
 		const cube = new THREE.Mesh(geometry, material);
 		const x = (i % 3) - 1;
 		const y = Math.floor((parts.length - 1 - i) / 3) - 1;
-		cube.position.set((x * boxSize.x) / 100, (y * boxSize.y) / 100, 0);
+		cube.position.set((x * cubeSize.x) / 100, (y * cubeSize.y) / 100, 0);
 		scene.add(cube);
 		cubes.add(cube);
 		const delay = i * 0.3;
@@ -218,9 +228,13 @@ let cylinders = new THREE.Group();
 scene.add(cylinders);
 let cylinder;
 const createCoin = (i, text, font, color, position, rotation) => {
+	let textSize;
+	matchMedia('(max-width: 480px)').matches
+		? (textSize = 0.5)
+		: (textSize = 1);
 	const textGeometry = new TextGeometry(text, {
 		font: font,
-		size: 1,
+		size: textSize,
 		height: 0.5,
 		curveSegments: 12,
 		bevelEnabled: true,
@@ -241,7 +255,15 @@ const createCoin = (i, text, font, color, position, rotation) => {
 	textMesh.position.set(0, 0.25, 0);
 	textMesh.rotation.x = -Math.PI / 2;
 
-	const cylinderGeometry = new THREE.CylinderGeometry(3, 3, 0.5, 50);
+	let coinSize;
+	matchMedia('(max-width: 480px)').matches
+		? (coinSize = 1.5)
+		: (coinSize = 3);
+	const cylinderGeometry = new THREE.CylinderGeometry(
+		coinSize,
+		coinSize,
+		0.5,
+	);
 	const cylinderMaterial = new THREE.MeshPhysicalMaterial({
 		color: color,
 		roughness: 0.6,
@@ -275,7 +297,8 @@ const coins = [
 ];
 const rows = 3;
 const cols = 3;
-const gap = 6.5;
+let gap;
+matchMedia('(max-width: 480px)').matches ? (gap = 3.25) : (gap = 6.5);
 fontLoader.load(
 	'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
 	font => {
@@ -300,6 +323,10 @@ fontLoader.load(
 let diamond;
 const gltfLoader = new GLTFLoader();
 gltfLoader.load('/diamond.glb', model => {
+	let diamondSize;
+	matchMedia('(max-width: 480px)').matches
+		? (diamondSize = 1.25)
+		: (diamondSize = 2.5);
 	diamond = model.scene;
 	diamond.scale.set(0, 0, 0);
 	diamond.rotation.set(0.25, 0, 0);
@@ -319,14 +346,23 @@ gltfLoader.load('/diamond.glb', model => {
 		z: 0,
 	});
 	sectionAni2.to(diamond.scale, {
-		x: 2,
-		y: 2,
-		z: 2,
+		x: diamondSize,
+		y: diamondSize,
+		z: diamondSize,
 	});
 });
 
 // section4
 let ringModel;
+
+// const geometry = new THREE.CircleGeometry(1, 32);
+// const material = new THREE.MeshBasicMaterial({
+// 	color: 0xffffff,
+// 	toneMapped: false,
+// });
+// const circle = new THREE.Mesh(geometry, material);
+// scene.add(circle);
+
 const setupModel = () => {
 	new RGBELoader().load(
 		'/kloofendal_48d_partly_cloudy_puresky_4k.hdr',
@@ -344,7 +380,7 @@ const setupModel = () => {
 				toneMapped: false,
 			});
 			const gemMaterial = new THREE.MeshPhysicalMaterial({
-				color: new THREE.Color('#6AB04C'),
+				color: new THREE.Color('#263391'),
 				metalness: 0.5,
 				roughness: 0,
 				opacity: 0.8,
@@ -358,6 +394,18 @@ const setupModel = () => {
 
 			gltfLoader.load('/ring.glb', gltf => {
 				ringModel = gltf.scene;
+
+				let ringSize = 1.2;
+				let ringPosition = { x: 4, y: 3 };
+				let diamondPosition = { x: -3, y: -1.5 };
+				if (matchMedia('(max-width: 480px)').matches) {
+					ringSize = 0.6;
+					ringPosition.x = 2;
+					ringPosition.y = 2;
+					diamondPosition.x = -1.5;
+					diamondPosition.y = -1.5;
+				}
+
 				ringModel.scale.set(0, 0, 0);
 				ringModel.traverse(child => {
 					if (child instanceof THREE.Mesh) {
@@ -368,35 +416,34 @@ const setupModel = () => {
 						}
 					}
 				});
+				ringModel.rotation.set(6, 2.6, 2);
 				scene.add(ringModel);
 
 				sectionAni3.to(ringModel.scale, {
-					x: 2,
-					y: 2,
-					z: 2,
+					x: ringSize,
+					y: ringSize,
+					z: ringSize,
 				});
 				sectionAni3.to(
 					ringModel.position,
 					{
-						x: 2,
-						y: 4,
-						z: 2,
+						x: ringPosition.x,
+						y: ringPosition.y,
 					},
 					'<',
 				);
 				sectionAni3.to(
 					diamond.position,
 					{
-						x: -2,
-						y: 2,
-						z: 1,
+						x: diamondPosition.x,
+						y: diamondPosition.y,
 					},
 					'<',
 				);
 				sectionAni3.to(
 					renderer,
 					{
-						toneMappingExposure: 0.1,
+						toneMappingExposure: 0.2,
 					},
 					'<',
 				);
@@ -452,8 +499,12 @@ function animate() {
 		});
 	}
 
-	if (section3) {
+	if (section3 || section4) {
 		diamond.rotation.y = time * 0.4;
+	}
+	if (section4) {
+		const angle = 15 * Math.sin(time);
+		ringModel.rotation.y = angle * (Math.PI / 180) + 2.5;
 	}
 
 	requestAnimationFrame(animate);
