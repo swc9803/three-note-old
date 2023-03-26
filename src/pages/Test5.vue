@@ -1,7 +1,10 @@
 <template>
-	<div ref="containerRef" class="container">
-		<p>{{ loadingValue }}</p>
-	</div>
+	<transition name="init">
+		<div v-show="loading" class="loadingContainer">
+			<div ref="loadingRef" />
+		</div>
+	</transition>
+	<div ref="containerRef" class="container" />
 </template>
 
 <script setup>
@@ -13,9 +16,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
 
 const containerRef = ref();
-const loadingValue = ref(0);
+const loading = ref(true);
+const loadingRef = ref();
+let loadingValue = 0;
 let progress1 = 0,
-	progress2 = 0;
+	progress2 = 0,
+	progress3 = 0;
 
 let camera;
 
@@ -88,44 +94,6 @@ for (let i = 0; i < 4; i++) {
 const loadingManager = new THREE.LoadingManager();
 const loadingRGBE = new RGBELoader(loadingManager);
 const loadingGLTF = new GLTFLoader(loadingManager);
-loadingRGBE.load(
-	'/kloofendal_48d_partly_cloudy_puresky_4k.hdr',
-	() => {
-		console.log('complete');
-		cylinders.children.forEach(cylinder => {
-			const cylinderTween1 = gsap.to(cylinder.scale, {
-				x: 1,
-				y: 1,
-				z: 1,
-			});
-			const cylinderTween2 = gsap.from(cylinder.position, {
-				x: 0,
-				y: 0,
-				onStart: () => {
-					gsap.to(cylinders.scale, {
-						x: 1,
-						y: 1,
-						z: 1,
-					});
-				},
-				onReverseComplete: () => {
-					gsap.set(cylinders.scale, {
-						x: 0,
-						y: 0,
-						z: 0,
-					});
-				},
-			});
-			cylindersTweens.push(cylinderTween1);
-			cylindersTweens.push(cylinderTween2);
-		});
-		sectionAni1.add(cylindersTweens);
-	},
-	xhr => {
-		progress1 = (xhr.loaded / xhr.total) * 100;
-		updateProgress();
-	},
-);
 
 // section1 model
 function splitImage(image, rows, cols) {
@@ -158,6 +126,8 @@ function splitImage(image, rows, cols) {
 	return parts;
 }
 
+const initCubes = [];
+let initCube1, initCube2, initCube3;
 const cubesTweens = [];
 const cubes = new THREE.Group();
 scene.add(cubes);
@@ -189,29 +159,30 @@ image.onload = () => {
 		scene.add(cube);
 		cubes.add(cube);
 		const delay = i * 0.3;
-		gsap.from(cube.position, {
+		initCube1 = gsap.from(cube.position, {
 			x: 50,
 			delay,
 			duration: 1,
 			ease: 'power2.out',
+			paused: true,
 		});
-		gsap.from(cube.scale, {
+		initCube2 = gsap.from(cube.scale, {
 			x: 6,
 			y: 6,
 			delay,
 			duration: 1,
 			ease: 'power2.out',
+			paused: true,
 		});
-		gsap.to(cube.rotation, {
+		initCube3 = gsap.to(cube.rotation, {
 			y: -Math.PI * 2,
 			delay,
 			duration: 1,
 			ease: 'none',
+			paused: true,
 		});
+		initCubes.push(initCube1, initCube2, initCube3);
 	}
-	gsap.delayedCall((parts.length - 1) * 0.3 + 1, () => {
-		isAnimated = false;
-	});
 
 	cubes.children.forEach(cube => {
 		const cubeTween1 = gsap.to(cube.scale, {
@@ -334,35 +305,42 @@ fontLoader.load(
 
 // section3 model
 let diamond;
-loadingGLTF.load('/diamond.glb', model => {
-	let diamondSize;
-	matchMedia('(max-width: 480px)').matches
-		? (diamondSize = 1.25)
-		: (diamondSize = 2.5);
-	diamond = model.scene;
-	diamond.scale.set(0, 0, 0);
-	diamond.rotation.set(0.25, 0, 0);
-	diamond.traverse(child => {
-		if (child instanceof THREE.Mesh) {
-			const material = child.material;
-			if (material instanceof THREE.MeshStandardMaterial) {
-				material.toneMapped = false;
+loadingGLTF.load(
+	'/diamond.glb',
+	model => {
+		let diamondSize;
+		matchMedia('(max-width: 480px)').matches
+			? (diamondSize = 1.25)
+			: (diamondSize = 2.5);
+		diamond = model.scene;
+		diamond.scale.set(0, 0, 0);
+		diamond.rotation.set(0.25, 0, 0);
+		diamond.traverse(child => {
+			if (child instanceof THREE.Mesh) {
+				const material = child.material;
+				if (material instanceof THREE.MeshStandardMaterial) {
+					material.toneMapped = false;
+				}
 			}
-		}
-	});
-	scene.add(diamond);
+		});
+		scene.add(diamond);
 
-	sectionAni2.to(cylinders.scale, {
-		x: 0,
-		y: 0,
-		z: 0,
-	});
-	sectionAni2.to(diamond.scale, {
-		x: diamondSize,
-		y: diamondSize,
-		z: diamondSize,
-	});
-});
+		sectionAni2.to(cylinders.scale, {
+			x: 0,
+			y: 0,
+			z: 0,
+		});
+		sectionAni2.to(diamond.scale, {
+			x: diamondSize,
+			y: diamondSize,
+			z: diamondSize,
+		});
+	},
+	xhr => {
+		progress3 = (xhr.loaded / xhr.total) * 100;
+		updateProgress();
+	},
+);
 
 // section4
 let circleSize = 2.5;
@@ -417,12 +395,43 @@ for (let i = 0; i < 4; i++) {
 
 let ringModel;
 const setupModel = () => {
-	new RGBELoader().load(
+	loadingRGBE.load(
 		'/kloofendal_48d_partly_cloudy_puresky_4k.hdr',
 		texture => {
 			texture.mapping = THREE.EquirectangularReflectionMapping;
 			scene.background = texture;
 			scene.environment = texture;
+
+			loading.value = false;
+
+			cylinders.children.forEach(cylinder => {
+				const cylinderTween1 = gsap.to(cylinder.scale, {
+					x: 1,
+					y: 1,
+					z: 1,
+				});
+				const cylinderTween2 = gsap.from(cylinder.position, {
+					x: 0,
+					y: 0,
+					onStart: () => {
+						gsap.to(cylinders.scale, {
+							x: 1,
+							y: 1,
+							z: 1,
+						});
+					},
+					onReverseComplete: () => {
+						gsap.set(cylinders.scale, {
+							x: 0,
+							y: 0,
+							z: 0,
+						});
+					},
+				});
+				cylindersTweens.push(cylinderTween1);
+				cylindersTweens.push(cylinderTween2);
+			});
+			sectionAni1.add(cylindersTweens);
 
 			const goldMaterial = new THREE.MeshStandardMaterial({
 				color: new THREE.Color('#D4AF37'),
@@ -511,6 +520,12 @@ const setupModel = () => {
 						},
 						'<',
 					);
+					initCubes.forEach(tween => {
+						tween.play();
+						gsap.delayedCall(8 * 0.3 + 1, () => {
+							isAnimated = false;
+						});
+					});
 				},
 				xhr => {
 					progress2 = (xhr.loaded / xhr.total) * 100;
@@ -518,10 +533,17 @@ const setupModel = () => {
 				},
 			);
 		},
+		xhr => {
+			progress1 = (xhr.loaded / xhr.total) * 100;
+			updateProgress();
+		},
 	);
 };
 function updateProgress() {
-	loadingValue.value = Math.round((progress1 + progress2) / 2);
+	loadingValue = Math.round((progress1 + progress2 + progress3) / 3);
+	gsap.to(loadingRef.value, {
+		width: `${loadingValue}%`,
+	});
 }
 
 function init() {
@@ -736,18 +758,37 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+.loadingContainer {
+	position: absolute;
+	width: 100%;
+	height: 100vh;
+	background: white;
+	overflow: hidden;
+	z-index: 1;
+	div {
+		position: relative;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 0;
+		height: 100%;
+		background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+			url('@/assets/preview.webp');
+		background-size: cover;
+		background-position: center;
+	}
+}
 .container {
 	position: absolute;
 	width: 100%;
 	height: 100vh;
 	overflow: hidden;
-	p {
-		position: absolute;
-		bottom: 0;
-		width: 100%;
-		color: white;
-		font-size: 2em;
-		text-align: center;
-	}
+}
+
+.init-leave-active {
+	transition: 0.5s;
+}
+.init-leave-to {
+	opacity: 0;
 }
 </style>
