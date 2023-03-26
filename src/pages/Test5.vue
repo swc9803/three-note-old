@@ -1,6 +1,6 @@
 <template>
-	<div class="wrapper">
-		<div ref="containerRef" class="container" />
+	<div ref="containerRef" class="container">
+		<p>{{ loadingValue }}</p>
 	</div>
 </template>
 
@@ -13,6 +13,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
 
 const containerRef = ref();
+const loadingValue = ref(0);
+let progress1 = 0,
+	progress2 = 0;
+
 let camera;
 
 let startY = null;
@@ -23,10 +27,10 @@ let time = 0;
 
 let isAnimated = true;
 
-let section1 = true; // 사진
-let section2 = false; // 스킬
-let section3 = false; // 보석
-let section4 = false; // 꿈
+let section1 = true;
+let section2 = false;
+let section3 = false;
+let section4 = false;
 
 let activeRaycaster = false;
 const sectionAni1 = gsap.timeline({
@@ -80,6 +84,49 @@ for (let i = 0; i < 4; i++) {
 	scene.add(spotLight);
 }
 
+// loading
+const loadingManager = new THREE.LoadingManager();
+const loadingRGBE = new RGBELoader(loadingManager);
+const loadingGLTF = new GLTFLoader(loadingManager);
+loadingRGBE.load(
+	'/kloofendal_48d_partly_cloudy_puresky_4k.hdr',
+	() => {
+		console.log('complete');
+		cylinders.children.forEach(cylinder => {
+			const cylinderTween1 = gsap.to(cylinder.scale, {
+				x: 1,
+				y: 1,
+				z: 1,
+			});
+			const cylinderTween2 = gsap.from(cylinder.position, {
+				x: 0,
+				y: 0,
+				onStart: () => {
+					gsap.to(cylinders.scale, {
+						x: 1,
+						y: 1,
+						z: 1,
+					});
+				},
+				onReverseComplete: () => {
+					gsap.set(cylinders.scale, {
+						x: 0,
+						y: 0,
+						z: 0,
+					});
+				},
+			});
+			cylindersTweens.push(cylinderTween1);
+			cylindersTweens.push(cylinderTween2);
+		});
+		sectionAni1.add(cylindersTweens);
+	},
+	xhr => {
+		progress1 = (xhr.loaded / xhr.total) * 100;
+		updateProgress();
+	},
+);
+
 // section1 model
 function splitImage(image, rows, cols) {
 	const canvas = document.createElement('canvas');
@@ -87,7 +134,6 @@ function splitImage(image, rows, cols) {
 	const width = image.width / cols;
 	const height = image.height / rows;
 	const parts = [];
-
 	canvas.width = width;
 	canvas.height = height;
 
@@ -121,7 +167,6 @@ const image = new Image();
 image.src = '/origin.png';
 image.onload = () => {
 	const parts = splitImage(image, 3, 3);
-
 	let cubeSize;
 	matchMedia('(max-width: 480px)').matches
 		? (cubeSize = new THREE.Vector2(180, 240))
@@ -132,7 +177,6 @@ image.onload = () => {
 		cubeSize.y / 100,
 		1,
 	);
-
 	for (let i = 0; i < parts.length; i++) {
 		const material = new THREE.MeshBasicMaterial({
 			map: textureLoader.load(parts[i].src),
@@ -188,37 +232,6 @@ image.onload = () => {
 		cubesTweens.push(cubeTween2);
 		cubesTweens.push(cubeTween3);
 	});
-	// 조건문으로 로드 되면 수정
-	setTimeout(() => {
-		cylinders.children.forEach(cylinder => {
-			const cylinderTween1 = gsap.to(cylinder.scale, {
-				x: 1,
-				y: 1,
-				z: 1,
-			});
-			const cylinderTween2 = gsap.from(cylinder.position, {
-				x: 0,
-				y: 0,
-				onStart: () => {
-					gsap.to(cylinders.scale, {
-						x: 1,
-						y: 1,
-						z: 1,
-					});
-				},
-				onReverseComplete: () => {
-					gsap.set(cylinders.scale, {
-						x: 0,
-						y: 0,
-						z: 0,
-					});
-				},
-			});
-			cylindersTweens.push(cylinderTween1);
-			cylindersTweens.push(cylinderTween2);
-		});
-		sectionAni1.add(cylindersTweens);
-	}, 2000);
 	sectionAni1.add(cubesTweens);
 };
 
@@ -321,8 +334,7 @@ fontLoader.load(
 
 // section3 model
 let diamond;
-const gltfLoader = new GLTFLoader();
-gltfLoader.load('/diamond.glb', model => {
+loadingGLTF.load('/diamond.glb', model => {
 	let diamondSize;
 	matchMedia('(max-width: 480px)').matches
 		? (diamondSize = 1.25)
@@ -353,16 +365,57 @@ gltfLoader.load('/diamond.glb', model => {
 });
 
 // section4
+let circleSize = 2.5;
+if (matchMedia('(max-width: 480px)').matches) {
+	circleSize = 1.3;
+}
+const circleGeometry = new THREE.CircleGeometry(circleSize, 32);
+const circleMaterial = new THREE.MeshBasicMaterial({
+	color: 0xffffff,
+	toneMapped: false,
+});
+const circles = new THREE.Group();
+scene.add(circles);
+
+let circlePositionFrom = { x: -3, y: 0 };
+let circlePositionTo = { x: 4.5, y: 3.3 };
+if (matchMedia('(max-width: 480px)').matches) {
+	circlePositionFrom.x = -1.5;
+	circlePositionFrom.y = -0.7;
+	circlePositionTo.x = 2.2;
+	circlePositionTo.y = 2.3;
+}
+
+for (let i = 0; i < 4; i++) {
+	const circle = new THREE.Mesh(circleGeometry, circleMaterial);
+	circle.position.set(circlePositionFrom.x, circlePositionFrom.y, 1);
+	circle.scale.set(0, 0, 0);
+	scene.add(circle);
+	circles.add(circle);
+	circles.scale.set(0, 0, 0);
+	gsap.to(circle.position, {
+		x: circlePositionTo.x,
+		y: circlePositionTo.y,
+		z: -1.8,
+		delay: (i + 1) * 1.5,
+		repeatDelay: 1.5,
+		duration: 3,
+		repeat: -1,
+		ease: 'power2.in',
+	});
+	gsap.to(circle.scale, {
+		x: 1,
+		y: 1,
+		z: 1,
+		delay: (i + 1) * 1.5,
+		repeatDelay: 1.5,
+		duration: 3,
+		repeat: -1,
+		ease: 'power2.in',
+	});
+}
+
 let ringModel;
-
-// const geometry = new THREE.CircleGeometry(1, 32);
-// const material = new THREE.MeshBasicMaterial({
-// 	color: 0xffffff,
-// 	toneMapped: false,
-// });
-// const circle = new THREE.Mesh(geometry, material);
-// scene.add(circle);
-
 const setupModel = () => {
 	new RGBELoader().load(
 		'/kloofendal_48d_partly_cloudy_puresky_4k.hdr',
@@ -392,65 +445,84 @@ const setupModel = () => {
 				toneMapped: false,
 			});
 
-			gltfLoader.load('/ring.glb', gltf => {
-				ringModel = gltf.scene;
+			loadingGLTF.load(
+				'/ring.glb',
+				gltf => {
+					ringModel = gltf.scene;
 
-				let ringSize = 1.2;
-				let ringPosition = { x: 4, y: 3 };
-				let diamondPosition = { x: -3, y: -1.5 };
-				if (matchMedia('(max-width: 480px)').matches) {
-					ringSize = 0.6;
-					ringPosition.x = 2;
-					ringPosition.y = 2;
-					diamondPosition.x = -1.5;
-					diamondPosition.y = -1.5;
-				}
-
-				ringModel.scale.set(0, 0, 0);
-				ringModel.traverse(child => {
-					if (child instanceof THREE.Mesh) {
-						if (child.name.startsWith('GEM')) {
-							child.material = gemMaterial;
-						} else {
-							child.material = goldMaterial;
-						}
+					let ringSize = 1.2;
+					let ringPosition = { x: 4, y: 3 };
+					let diamondPosition = { x: -3, y: -1.5 };
+					if (matchMedia('(max-width: 480px)').matches) {
+						ringSize = 0.6;
+						ringPosition.x = 2;
+						ringPosition.y = 2;
+						diamondPosition.x = -1.5;
+						diamondPosition.y = -1.5;
 					}
-				});
-				ringModel.rotation.set(6, 2.6, 2);
-				scene.add(ringModel);
 
-				sectionAni3.to(ringModel.scale, {
-					x: ringSize,
-					y: ringSize,
-					z: ringSize,
-				});
-				sectionAni3.to(
-					ringModel.position,
-					{
-						x: ringPosition.x,
-						y: ringPosition.y,
-					},
-					'<',
-				);
-				sectionAni3.to(
-					diamond.position,
-					{
-						x: diamondPosition.x,
-						y: diamondPosition.y,
-					},
-					'<',
-				);
-				sectionAni3.to(
-					renderer,
-					{
-						toneMappingExposure: 0.2,
-					},
-					'<',
-				);
-			});
+					ringModel.scale.set(0, 0, 0);
+					ringModel.traverse(child => {
+						if (child instanceof THREE.Mesh) {
+							if (child.name.startsWith('GEM')) {
+								child.material = gemMaterial;
+							} else {
+								child.material = goldMaterial;
+							}
+						}
+					});
+					ringModel.rotation.set(6, 2.6, 2);
+					scene.add(ringModel);
+
+					sectionAni3.to(ringModel.scale, {
+						x: ringSize,
+						y: ringSize,
+						z: ringSize,
+					});
+					sectionAni3.to(
+						ringModel.position,
+						{
+							x: ringPosition.x,
+							y: ringPosition.y,
+						},
+						'<',
+					);
+					sectionAni3.to(
+						diamond.position,
+						{
+							x: diamondPosition.x,
+							y: diamondPosition.y,
+						},
+						'<',
+					);
+					sectionAni3.to(
+						circles.scale,
+						{
+							x: 1,
+							y: 1,
+							z: 1,
+						},
+						'<',
+					);
+					sectionAni3.to(
+						renderer,
+						{
+							toneMappingExposure: 0.2,
+						},
+						'<',
+					);
+				},
+				xhr => {
+					progress2 = (xhr.loaded / xhr.total) * 100;
+					updateProgress();
+				},
+			);
 		},
 	);
 };
+function updateProgress() {
+	loadingValue.value = Math.round((progress1 + progress2) / 2);
+}
 
 function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -664,15 +736,18 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.wrapper {
-	position: relative;
+.container {
+	position: absolute;
 	width: 100%;
-	height: calc(var(--vh) * 100);
+	height: 100vh;
 	overflow: hidden;
-	.container {
-		position: relative;
+	p {
+		position: absolute;
+		bottom: 0;
 		width: 100%;
-		height: 100%;
+		color: white;
+		font-size: 2em;
+		text-align: center;
 	}
 }
 </style>
