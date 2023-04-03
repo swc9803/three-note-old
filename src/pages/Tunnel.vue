@@ -1,31 +1,34 @@
 <template>
 	<div id="tunnel" ref="containerRef" class="container">
-		<canvas />
+		<button @click="process">button</button>
 	</div>
 </template>
 
 <script setup>
+import gsap from 'gsap';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const containerRef = ref();
 let camera;
 let renderer;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x000000, 100, 200);
+// scene.fog = new THREE.Fog(0x000000, 100, 200);
 
 // <polygon points="68.5,185.5 1,262.5 270.9,281.9 345.5,212.8 178,155.7 240.3,72.3 153.4,0.6 52.6,53.3 "/>
 const points = [
-	[68.5, 185.5],
-	[1, 262.5],
-	[270.9, 281.9],
-	[300, 212.8],
-	[178, 155.7],
-	[240.3, 72.3],
-	[153.4, 0.6],
-	[52.6, 53.3],
-	[68.5, 185.5],
+	[191, 0],
+	[238.023, 135.279],
+	[381.211, 138.197],
+	[267.085, 224.721],
+	[308.557, 361.803],
+	[191, 280],
+	[73.4429, 361.803],
+	[114.915, 224.721],
+	[0.788696, 138.197],
+	[143.977, 135.279],
+	[191, 0],
 ];
 
 for (let i = 0; i < points.length; i++) {
@@ -49,15 +52,30 @@ for (let i = 0; i < colors.length; i++) {
 	scene.add(tube);
 }
 
-let percentage = 0;
-function animate() {
-	percentage += 0.0003;
-	const p1 = path.getPointAt(percentage % 1);
-	const p2 = path.getPointAt((percentage + 0.01) % 1);
-	camera.position.set(p1.x, p1.y, p1.z);
-	camera.lookAt(p2);
-	//   console.log(percentage)
+const ani1 = gsap.timeline({ paused: true });
 
+const process = () => {
+	ani1.to(
+		{},
+		{
+			duration: 10,
+			onUpdate: () => {
+				const p1 = path.getPointAt(ani1.progress());
+				gsap.to(camera.position, {
+					x: p1.x,
+					y: p1.y,
+					z: p1.z,
+					duration: 0.1,
+				});
+				const p2 = path.getPointAt(ani1.progress());
+				camera.lookAt(p2);
+			},
+		},
+	);
+	ani1.play();
+};
+
+function animate() {
 	renderer.render(scene, camera);
 
 	requestAnimationFrame(animate);
@@ -75,8 +93,8 @@ function init() {
 	);
 	containerRef.value.appendChild(renderer.domElement);
 
-	const controls = new OrbitControls(camera, renderer.domElement);
-	controls.update();
+	// const controls = new OrbitControls(camera, renderer.domElement);
+	// controls.update();
 }
 
 onMounted(() => {
@@ -86,6 +104,7 @@ onMounted(() => {
 		0.1,
 		1000,
 	);
+	camera.position.set(238.023, 135.279, 100);
 
 	init();
 	animate();
@@ -93,15 +112,13 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-canvas {
-	position: absolute;
-	top: 0;
-	left: 0;
-}
-
 .container {
 	position: absolute;
 	width: 100%;
 	height: 100%;
+	button {
+		position: absolute;
+		bottom: 0;
+	}
 }
 </style>

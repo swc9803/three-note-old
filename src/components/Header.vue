@@ -10,6 +10,7 @@
 			<RouterLink to="/glass">Glass</RouterLink>
 			<RouterLink to="/hdr">Hdr</RouterLink>
 			<RouterLink to="/jewel">Jewel</RouterLink>
+			<RouterLink to="/tunnel">Tunnel</RouterLink>
 			<RouterLink to="/test">Test</RouterLink>
 			<RouterLink to="/test2">Test2</RouterLink>
 			<RouterLink to="/test3">Test3</RouterLink>
