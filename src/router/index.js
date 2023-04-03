@@ -10,6 +10,7 @@ import Picking from '../pages/Picking.vue';
 import Hdr from '../pages/Hdr.vue';
 import Jewel from '../pages/Jewel.vue';
 import Tunnel from '../pages/Tunnel.vue';
+import TunnelScroll from '../pages/TunnelScroll.vue';
 import Test from '../pages/Test.vue';
 import Test2 from '../pages/Test2.vue';
 import Test3 from '../pages/Test3.vue';
@@ -74,6 +75,11 @@ const router = createRouter({
 			path: '/tunnel',
 			name: 'tunnel',
 			component: Tunnel,
+		},
+		{
+			path: '/tunnelscroll',
+			name: 'tunnelscroll',
+			component: TunnelScroll,
 		},
 		{
 			path: '/test',

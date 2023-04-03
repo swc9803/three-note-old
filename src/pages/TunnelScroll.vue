@@ -1,22 +1,24 @@
 <template>
-	<div id="tunnel" ref="containerRef" class="container">
-		<button @click="process">button</button>
+	<div>
+		<div ref="containerRef" class="container" />
+		<div ref="scrollRef" class="scroll" />
 	</div>
 </template>
 
 <script setup>
-import gsap from 'gsap';
 import * as THREE from 'three';
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const containerRef = ref();
+const scrollRef = ref();
 let camera;
 let renderer;
 
 const scene = new THREE.Scene();
-// scene.fog = new THREE.Fog(0x000000, 100, 200);
 
-// <polygon points="68.5,185.5 1,262.5 270.9,281.9 345.5,212.8 178,155.7 240.3,72.3 153.4,0.6 52.6,53.3 "/>
 const points = [
 	[191, 0],
 	[238.023, 135.279],
@@ -52,30 +54,6 @@ for (let i = 0; i < colors.length; i++) {
 	scene.add(tube);
 }
 
-const ani1 = gsap.timeline({ paused: true });
-
-const process = () => {
-	ani1.to(
-		{},
-		{
-			duration: 10,
-			onUpdate: () => {
-				const p1 = path.getPointAt(ani1.progress());
-				gsap.to(camera.position, {
-					x: p1.x,
-					y: p1.y,
-					z: p1.z,
-					duration: 0.1,
-				});
-				const p2 = path.getPointAt(ani1.progress());
-				camera.lookAt(p2);
-				console.log(ani1.progress());
-			},
-		},
-	);
-	ani1.play();
-};
-
 function animate() {
 	renderer.render(scene, camera);
 
@@ -85,7 +63,6 @@ function animate() {
 function init() {
 	renderer = new THREE.WebGLRenderer({
 		antialias: true,
-		// alpha: true
 	});
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(
@@ -93,9 +70,6 @@ function init() {
 		containerRef.value.offsetHeight,
 	);
 	containerRef.value.appendChild(renderer.domElement);
-
-	// const controls = new OrbitControls(camera, renderer.domElement);
-	// controls.update();
 }
 
 onMounted(() => {
@@ -105,8 +79,34 @@ onMounted(() => {
 		0.1,
 		1000,
 	);
-	camera.position.set(238.023, 135.279, 100);
+	camera.position.set(238, 135, 100);
 
+	const moveCamera = gsap.timeline();
+	let p1 = path.getPointAt(1);
+	ScrollTrigger.create({
+		animation: moveCamera,
+		trigger: scrollRef.value,
+		start: 'top top',
+		end: 'bottom bottom',
+		markers: true,
+		scrub: 1,
+	});
+	moveCamera.to(
+		{},
+		{
+			onUpdate: () => {
+				const p1 = path.getPointAt(moveCamera.progress());
+				gsap.to(camera.position, {
+					x: p1.x,
+					y: p1.y,
+					z: p1.z,
+					duration: 0.1,
+				});
+				const p2 = path.getPointAt(moveCamera.progress() + 0.001);
+				camera.lookAt(p2);
+			},
+		},
+	);
 	init();
 	animate();
 });
@@ -114,12 +114,14 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .container {
-	position: absolute;
+	position: fixed;
+	top: 0;
+	left: 0;
 	width: 100%;
-	height: 100%;
-	button {
-		position: absolute;
-		bottom: 0;
-	}
+	height: 100vh;
+}
+.scroll {
+	position: absolute;
+	height: 1000vh;
 }
 </style>
