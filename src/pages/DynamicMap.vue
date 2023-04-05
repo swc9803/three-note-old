@@ -26,7 +26,7 @@ scene.add(light);
 
 // model
 const renderTargetOptions = {
-	format: THREE.RGBFormat,
+	format: THREE.RGBAFormat,
 	generateMipmaps: true,
 	minFilter: THREE.LinearMipmapLinearFilter,
 };

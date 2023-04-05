@@ -23,13 +23,15 @@ light.position.set(1, 1, 1);
 scene.add(light);
 
 class Particle {
-	constructor(scene, geometry, material, x, y) {
+	constructor(geometry, material, x, y) {
 		const mesh = new THREE.Mesh(geometry, material);
 		mesh.position.set(x, y, 0);
 		scene.add(mesh);
 		mesh.wrapper = this;
 		this.awakenTime = undefined;
-		this._mesh = mesh;
+		this.duration = 10;
+		this.z_limit = 10;
+		this.mesh = mesh;
 	}
 
 	awake(time) {
@@ -40,29 +42,46 @@ class Particle {
 
 	update(time) {
 		if (this.awakenTime) {
-			const period = 12.0;
-			const t = time - this.awakenTime;
-			if (t >= period) {
+			const progress = time - this.awakenTime;
+			if (progress >= this.duration) {
 				this.awakenTime = undefined;
 			}
 
-			this._mesh.rotation.x = THREE.MathUtils.lerp(
+			// 진행률을 0부터 1까지로 지정
+			this.mesh.rotation.x = THREE.MathUtils.lerp(
 				0,
-				Math.PI * 2 * period,
-				t / period,
+				Math.PI * this.duration,
+				progress / this.duration,
 			);
+
 			let h_s, l;
-			if (t < period / 2) {
-				h_s = THREE.MathUtils.lerp(0.0, 1.0, t / (period / 2));
-				l = THREE.MathUtils.lerp(0.1, 1.0, t / (period / 2));
+			if (progress < this.duration / 2) {
+				h_s = THREE.MathUtils.lerp(
+					0,
+					1,
+					progress / (this.duration / 2),
+				);
+				l = THREE.MathUtils.lerp(
+					0.1,
+					1,
+					progress / (this.duration / 2),
+				);
 			} else {
-				h_s = THREE.MathUtils.lerp(1.0, 0.0, t / (period / 2.0) - 1);
-				l = THREE.MathUtils.lerp(1.0, 0.1, t / (period / 2.0) - 1);
+				h_s = THREE.MathUtils.lerp(
+					1,
+					0,
+					progress / (this.duration / 2) - 1,
+				);
+				l = THREE.MathUtils.lerp(
+					1,
+					0.1,
+					progress / (this.duration / 2) - 1,
+				);
 			}
 
-			this._mesh.material.color.setHSL(h_s, h_s, l);
+			this.mesh.material.color.setHSL(h_s, h_s, l);
 
-			this._mesh.position.z = h_s * 15.0;
+			this.mesh.position.z = h_s * this.z_limit;
 		}
 	}
 }
@@ -75,20 +94,19 @@ for (let x = -20; x <= 20; x += 1.1) {
 		color.setHSL(0, 0, 0.1);
 		const material = new THREE.MeshStandardMaterial({ color });
 
-		new Particle(scene, geometry, material, x, y);
+		new Particle(geometry, material, x, y);
 	}
 }
 
 // raycaster
 const raycaster = new THREE.Raycaster();
-raycaster.cursorNormalizedPosition = undefined;
 
 const onMouseMove = e => {
 	const width = containerRef.value.offsetWidth;
 	const height = containerRef.value.offsetHeight;
 
-	const x = (e.offsetX / width) * 2 - 1;
-	const y = -(e.offsetY / height) * 2 + 1;
+	const x = (e.clientX / width) * 2 - 1;
+	const y = -(e.clientY / height) * 2 + 1;
 
 	raycaster.cursorNormalizedPosition = { x, y };
 };

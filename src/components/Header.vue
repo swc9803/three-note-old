@@ -6,6 +6,7 @@
 			<RouterLink to="/fit">ZoomFitModel</RouterLink>
 			<RouterLink to="/fbx">Fbx</RouterLink>
 			<RouterLink to="/background">Background</RouterLink>
+			<RouterLink to="/picking">picking</RouterLink>
 			<RouterLink to="/dynamic">DynamicMap</RouterLink>
 			<RouterLink to="/glass">Glass</RouterLink>
 			<RouterLink to="/hdr">Hdr</RouterLink>
@@ -27,11 +28,10 @@ nav {
 	position: absolute;
 	background: white;
 	z-index: 9;
-	display: none;
 	ul {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 20px;
+		gap: 15px;
 	}
 }
 </style>
