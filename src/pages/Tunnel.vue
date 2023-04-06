@@ -14,7 +14,7 @@ let camera;
 let renderer;
 
 const scene = new THREE.Scene();
-// scene.fog = new THREE.Fog(0x000000, 100, 200);
+scene.fog = new THREE.Fog(0x000000, 100, 200);
 
 // <polygon points="68.5,185.5 1,262.5 270.9,281.9 345.5,212.8 178,155.7 240.3,72.3 153.4,0.6 52.6,53.3 "/>
 const points = [
@@ -53,26 +53,46 @@ for (let i = 0; i < colors.length; i++) {
 }
 
 const ani1 = gsap.timeline({ paused: true });
+let startProgress = 0;
+let endProgress = 1 / 3;
+let isAnimationPlaying = false;
 
 const process = () => {
+	if (isAnimationPlaying) return;
 	ani1.to(
 		{},
 		{
-			duration: 10,
+			duration: 10 * (endProgress - startProgress),
 			onUpdate: () => {
-				const p1 = path.getPointAt(ani1.progress());
-				gsap.to(camera.position, {
-					x: p1.x,
-					y: p1.y,
-					z: p1.z,
-					duration: 0.1,
-				});
-				const p2 = path.getPointAt(ani1.progress());
-				camera.lookAt(p2);
-				console.log(ani1.progress());
+				const currentProgress =
+					ani1.progress() * (endProgress - startProgress) +
+					startProgress;
+				if (currentProgress < 0.995) {
+					const p1 = path.getPointAt(currentProgress);
+					gsap.to(camera.position, {
+						x: p1.x,
+						y: p1.y,
+						z: p1.z,
+						duration: 0.1,
+					});
+					const p2 = path.getPointAt(currentProgress + 0.001);
+					camera.lookAt(p2);
+				}
+			},
+			onComplete: () => {
+				isAnimationPlaying = false;
+				if (endProgress >= 1) {
+					startProgress = 0;
+					endProgress = 1 / 3;
+				} else {
+					startProgress = endProgress;
+					endProgress += 1 / 3;
+				}
 			},
 		},
 	);
+
+	isAnimationPlaying = true;
 	ani1.play();
 };
 
@@ -93,9 +113,6 @@ function init() {
 		containerRef.value.offsetHeight,
 	);
 	containerRef.value.appendChild(renderer.domElement);
-
-	// const controls = new OrbitControls(camera, renderer.domElement);
-	// controls.update();
 }
 
 onMounted(() => {

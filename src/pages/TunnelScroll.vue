@@ -73,6 +73,7 @@ function init() {
 }
 
 onMounted(() => {
+	window.scrollTo(0, 0);
 	camera = new THREE.PerspectiveCamera(
 		75,
 		containerRef.value.offsetWidth / containerRef.value.offsetHeight,
