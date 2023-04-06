@@ -89,7 +89,7 @@ onMounted(() => {
 		start: 'top top',
 		end: 'bottom bottom',
 		markers: true,
-		scrub: 1,
+		scrub: 2,
 	});
 	moveCamera.to(
 		{},
@@ -102,8 +102,10 @@ onMounted(() => {
 					z: p1.z,
 					duration: 0.1,
 				});
-				const p2 = path.getPointAt(moveCamera.progress() + 0.001);
-				camera.lookAt(p2);
+				if (moveCamera.progress() < 0.98) {
+					const p2 = path.getPointAt(moveCamera.progress() + 0.02);
+					camera.lookAt(p2);
+				}
 			},
 		},
 	);
