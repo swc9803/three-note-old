@@ -6,7 +6,7 @@
 
 <script setup>
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const containerRef = ref();
 let camera;
@@ -15,7 +15,7 @@ let time = 0;
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-scene.background = new THREE.Color(0x555555);
+scene.background = new THREE.Color(0x999999);
 
 // light
 const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -118,8 +118,8 @@ function init() {
 		containerRef.value.offsetHeight,
 	);
 	containerRef.value.appendChild(renderer.domElement);
-	const controls = new OrbitControls(camera, renderer.domElement);
-	controls.update();
+	// const controls = new OrbitControls(camera, renderer.domElement);
+	// controls.update();
 }
 
 function animate() {

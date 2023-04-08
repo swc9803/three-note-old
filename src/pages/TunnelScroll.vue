@@ -20,17 +20,12 @@ let renderer;
 const scene = new THREE.Scene();
 
 const points = [
-	[191, 0],
-	[238.023, 135.279],
-	[381.211, 138.197],
-	[267.085, 224.721],
-	[308.557, 361.803],
-	[191, 280],
-	[73.4429, 361.803],
-	[114.915, 224.721],
-	[0.788696, 138.197],
-	[143.977, 135.279],
-	[191, 0],
+	[240, 90],
+	[340, 130],
+	[320, 150],
+	[230, 190],
+	[250, 250],
+	[50, 300],
 ];
 
 for (let i = 0; i < points.length; i++) {
@@ -43,7 +38,7 @@ const path = new THREE.CatmullRomCurve3(points);
 
 const colors = [0xff6138, 0xffff9d, 0xbeeb9f, 0x79bd8f, 0x00a388];
 for (let i = 0; i < colors.length; i++) {
-	const geometry = new THREE.TubeGeometry(path, 100, i * 2 + 4, 10, true);
+	const geometry = new THREE.TubeGeometry(path, 100, i * 2 + 4, 10, false);
 	const material = new THREE.MeshBasicMaterial({
 		color: colors[i],
 		transparent: true,
@@ -72,6 +67,7 @@ function init() {
 	containerRef.value.appendChild(renderer.domElement);
 }
 
+let scrollTrigger;
 onMounted(() => {
 	window.scrollTo(0, 0);
 	camera = new THREE.PerspectiveCamera(
@@ -80,17 +76,20 @@ onMounted(() => {
 		0.1,
 		1000,
 	);
-	camera.position.set(238, 135, 100);
+	const p3 = path.getPointAt(0);
+	camera.position.set(p3.x, p3.y, p3.z);
+	const p2 = path.getPointAt(0.001);
+	camera.lookAt(p2);
 
 	const moveCamera = gsap.timeline();
 	let p1 = path.getPointAt(1);
-	ScrollTrigger.create({
+	scrollTrigger = ScrollTrigger.create({
 		animation: moveCamera,
 		trigger: scrollRef.value,
 		start: 'top top',
 		end: 'bottom bottom',
 		markers: true,
-		scrub: 2,
+		scrub: 4,
 	});
 	moveCamera.to(
 		{},
@@ -112,6 +111,9 @@ onMounted(() => {
 	);
 	init();
 	animate();
+});
+onBeforeUnmount(() => {
+	scrollTrigger.kill();
 });
 </script>
 

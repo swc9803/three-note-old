@@ -1,6 +1,11 @@
 <template>
 	<div id="tunnel" ref="containerRef" class="container">
-		<button @click="process">button</button>
+		<div
+			:style="isAnimationPlaying ? { opacity: 0.5 } : ''"
+			@click="process"
+		>
+			Explore
+		</div>
 	</div>
 </template>
 
@@ -13,24 +18,28 @@ let camera;
 let renderer;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x000000, 100, 200);
+scene.fog = new THREE.Fog(0x000000, 20, 100);
 
-// <polygon points="68.5,185.5 1,262.5 270.9,281.9 345.5,212.8 178,155.7 240.3,72.3 153.4,0.6 52.6,53.3 "/>
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(1, 1, 1);
+scene.add(light);
+
+const geometry = new THREE.TorusGeometry(0.7, 0.3, 12, 80);
+const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+const torus = new THREE.Mesh(geometry, material);
+torus.position.set(268.32, 53.9, 274.28);
+scene.add(torus);
+
 const points = [
-	[191, 0],
-	[238, 135],
-	[381, 138],
-	[267, 224],
-	[308, 361],
-	[191, 280],
-	[73, 361],
-	[114, 224],
-	[0, 138],
-	[143, 135],
-	[191, 0],
+	[240, 90],
+	[340, 130],
+	[320, 150],
+	[230, 190],
+	[250, 250],
+	[50, 300],
 ];
 
-const yValues = [-125, 125];
+const yValues = [-25, 25];
 for (let i = 0; i < points.length; i++) {
 	const x = points[i][0];
 	const y = yValues[i % yValues.length];
@@ -41,7 +50,7 @@ const path = new THREE.CatmullRomCurve3(points);
 
 const colors = [0xff6138, 0xffff9d, 0xbeeb9f, 0x79bd8f, 0x00a388];
 for (let i = 0; i < colors.length; i++) {
-	const geometry = new THREE.TubeGeometry(path, 100, i * 2 + 4, 10, true);
+	const geometry = new THREE.TubeGeometry(path, 200, i * 2 + 4, 10);
 	const material = new THREE.MeshBasicMaterial({
 		color: colors[i],
 		transparent: true,
@@ -56,7 +65,7 @@ const moveAni = gsap.timeline({ paused: true });
 
 let startProgress = 0;
 let endProgress = 1 / 3;
-let isAnimationPlaying = false;
+const isAnimationPlaying = ref(false);
 
 const customEasing = progress => {
 	if (progress < 0.5) {
@@ -67,12 +76,12 @@ const customEasing = progress => {
 };
 
 const process = () => {
-	if (!isAnimationPlaying) {
+	if (!isAnimationPlaying.value && endProgress <= 1) {
 		moveAni.clear();
 		moveAni.to(
 			{},
 			{
-				duration: 10 * (endProgress - startProgress),
+				duration: 12 * (endProgress - startProgress),
 				onUpdate: () => {
 					const easedProgress = customEasing(moveAni.progress());
 					const currentProgress =
@@ -86,19 +95,16 @@ const process = () => {
 					}
 				},
 				onComplete: () => {
-					isAnimationPlaying = false;
-					if (endProgress >= 1) {
-						startProgress = 0;
-						endProgress = 1 / 3;
-					} else {
-						startProgress = endProgress;
-						endProgress += 1 / 3;
-					}
+					isAnimationPlaying.value = false;
+					startProgress = endProgress;
+					// endProgress를 1을 초과하지 않게 계산
+					endProgress = Math.min(endProgress + 1 / 3, 1);
+					console.log(camera.position);
 				},
 			},
 		);
 
-		isAnimationPlaying = true;
+		isAnimationPlaying.value = true;
 		moveAni.play();
 	}
 };
@@ -145,9 +151,14 @@ onMounted(() => {
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	button {
+	div {
 		position: absolute;
-		bottom: 0;
+		bottom: 2.5%;
+		left: 2.5%;
+		background: white;
+		padding: 6px 12px;
+		border-radius: 10em;
+		cursor: pointer;
 	}
 }
 </style>
