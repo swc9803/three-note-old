@@ -111,6 +111,16 @@ const onMouseMove = e => {
 	raycaster.cursorNormalizedPosition = { x, y };
 };
 
+const onTouchMove = e => {
+	const width = containerRef.value.offsetWidth;
+	const height = containerRef.value.offsetHeight;
+
+	const x = (e.touches[0].clientX / width) * 2 - 1;
+	const y = -(e.touches[0].clientY / height) * 2 + 1;
+
+	raycaster.cursorNormalizedPosition = { x, y };
+};
+
 function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(
@@ -167,6 +177,7 @@ onMounted(() => {
 	animate();
 
 	renderer.domElement.addEventListener('mousemove', onMouseMove);
+	renderer.domElement.addEventListener('touchmove', onTouchMove);
 	window.addEventListener('resize', onResize);
 });
 
