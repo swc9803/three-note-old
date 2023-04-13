@@ -19,6 +19,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 const zoomFit = (object3d, camera) => {
 	// 모델의 경계 박스
 	const box = new THREE.Box3().setFromObject(object3d);
+
 	// 모델의 경계 박스 대각 길이
 	const sizeBox = box.getSize(new THREE.Vector3()).length();
 

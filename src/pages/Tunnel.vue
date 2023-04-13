@@ -31,19 +31,18 @@ torus.position.set(268.32, 53.9, 274.28);
 scene.add(torus);
 
 const points = [
-	[240, 90],
-	[340, 130],
-	[320, 150],
-	[230, 190],
-	[250, 250],
-	[50, 300],
+	[240, -25, 90],
+	[340, 25, 130],
+	[320, -25, 150],
+	[230, 25, 190],
+	[250, -25, 250],
+	[50, 25, 300],
 ];
 
-const yValues = [-25, 25];
 for (let i = 0; i < points.length; i++) {
 	const x = points[i][0];
-	const y = yValues[i % yValues.length];
-	const z = points[i][1];
+	const y = points[i][1];
+	const z = points[i][2];
 	points[i] = new THREE.Vector3(x, y, z);
 }
 const path = new THREE.CatmullRomCurve3(points);
